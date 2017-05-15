@@ -23,10 +23,18 @@
 
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/button_online"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"
+        android:text="get online resource"
+        tools:layout_editor_absoluteX="253dp"
+        tools:layout_editor_absoluteY="-8dp" />
+
+    <Button
+        android:id="@+id/button_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="button_refresh"
         tools:layout_editor_absoluteX="253dp"
         tools:layout_editor_absoluteY="-8dp" />
 

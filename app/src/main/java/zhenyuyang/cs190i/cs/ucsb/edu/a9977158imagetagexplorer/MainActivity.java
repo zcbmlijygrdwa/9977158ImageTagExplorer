@@ -41,13 +41,14 @@ public class MainActivity extends AppCompatActivity {
     Uri[] imageUris;
     GridView grid;
     final int NEW_PHOTO_REQUEST = 5;
+    ImageTagDatabaseHelper dbHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         ImageTagDatabaseHelper.Initialize(this);
-        final ImageTagDatabaseHelper dbHelper = ImageTagDatabaseHelper.GetInstance();
+        dbHelper = ImageTagDatabaseHelper.GetInstance();
 
 // register floatingActionButton
 
@@ -64,41 +65,29 @@ public class MainActivity extends AppCompatActivity {
 
         // end of register floatingActionButton
 
-        Button button = (Button) findViewById(R.id.button);
+        Button button = (Button) findViewById(R.id.button_online);
         button.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
                 // TODO Auto-generated method stub
 
-//                ImageTagDatabaseHelper dbHelper = ImageTagDatabaseHelper.GetInstance();
-//
-//                //  write information
-//                SQLiteDatabase database_w;
-//                database_w = dbHelper.getWritableDatabase();
-
-
-
                 getAllOnlineResource();
-
-
-//                imageUris = getImageUriFromDB(dbHelper.getReadableDatabase());
-//                YourTask y = new YourTask(new YourTask.OnTaskCompleted() {
-//
-//                    @Override
-//                    public void onTaskCompleted(Uri[] u) {
-//                        Log.i("my", "onTaskCompleted, u.length = " + u.length);
-//
-//
-//                        SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), u);
-//                        grid = (GridView) findViewById(R.id.grid);
-//                        grid.setAdapter(adapter);
-//
-//                    }
-//                });
-//                y.execute(dbHelper.getReadableDatabase());
-                updateGridViewWithDataBase(dbHelper.getReadableDatabase());
+                updateGridViewWithDB(dbHelper.getReadableDatabase());
             }
         });
+
+
+        Button button_refresh = (Button) findViewById(R.id.button_refresh);
+        button_refresh.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                updateGridViewWithDB(dbHelper.getReadableDatabase());
+            }
+        });
+
+
+
 
         imageUris = getImageUriFromDB(dbHelper.getReadableDatabase());
         // ==============    GridView   =====================
@@ -235,20 +224,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    void updateGridViewWithDataBase(SQLiteDatabase db){
-
+    void updateGridViewWithDB(SQLiteDatabase db){
         //imageUris = getImageUriFromDB(db);
-        YourTask y = new YourTask(new YourTask.OnTaskCompleted() {
-
+        UpdateGridViewWithDataBase y = new UpdateGridViewWithDataBase(new UpdateGridViewWithDataBase.OnTaskCompleted() {
             @Override
             public void onTaskCompleted(Uri[] temp_uris) {
                 Log.i("my", "onTaskCompleted, u.length = " + temp_uris.length);
-
-
                 SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), temp_uris);
                 grid = (GridView) findViewById(R.id.grid);
                 grid.setAdapter(adapter);
-
             }
         });
         y.execute(db);
@@ -265,7 +249,8 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Uri selectedImageURI = data.getData();
                 Log.i("onActivityResult", "result = " + selectedImageURI.toString());
-
+                saveImageUriToDB(selectedImageURI.toString(), dbHelper.getReadableDatabase());
+                updateGridViewWithDB(dbHelper.getWritableDatabase());
                 //Uri[] imageUris = { selectedImageURI,selectedImageURI,selectedImageURI};
 //                imageUris = addUri(imageUris,selectedImageURI);
 //

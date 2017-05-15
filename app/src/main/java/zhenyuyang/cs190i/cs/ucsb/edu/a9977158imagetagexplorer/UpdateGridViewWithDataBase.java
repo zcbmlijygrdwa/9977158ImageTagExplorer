@@ -12,8 +12,7 @@ import java.util.ArrayList;
  * Created by Zhenyu on 2017-05-15.
  */
 
-
-public class YourTask extends AsyncTask<Object,Object,Object> { //change Object to required type
+public class UpdateGridViewWithDataBase extends AsyncTask<Object,Object,Object> { //change Object to required type
 
 
 
@@ -23,9 +22,9 @@ public class YourTask extends AsyncTask<Object,Object,Object> { //change Object 
     }
 
     Uri[] imageUris2 ;
-    private OnTaskCompleted listener;
+    private UpdateGridViewWithDataBase.OnTaskCompleted listener;
 
-    public YourTask(OnTaskCompleted listener){
+    public UpdateGridViewWithDataBase(UpdateGridViewWithDataBase.OnTaskCompleted listener){
         this.listener=listener;
     }
 
@@ -94,3 +93,4 @@ public class YourTask extends AsyncTask<Object,Object,Object> { //change Object 
     }
 
 }
+
