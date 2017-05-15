@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -66,6 +67,15 @@ public class MainActivity extends AppCompatActivity {
 
                 getAllOnlineResource();
 
+
+                YourTask y  =new YourTask( new YourTask.OnTaskCompleted() {
+
+                    @Override
+                    public void onTaskCompleted(Uri[] u) {
+                        Log.i("my", "onTaskCompleted, u.length = "+u.length);
+                    }
+                });
+                y.execute(dbHelper.getReadableDatabase());
 //
 
             }
@@ -405,5 +415,12 @@ public class MainActivity extends AppCompatActivity {
 
         return uris;
     }
+
+
+
+
+
+
+
 
 }
