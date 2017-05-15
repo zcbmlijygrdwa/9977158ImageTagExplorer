@@ -47,9 +47,9 @@ public class MainActivity extends AppCompatActivity {
                 //  write information
                 SQLiteDatabase database_w;
                 database_w = dbHelper.getWritableDatabase();
-                for(int i = 0; i<120;i++) {
-                    getImageUriFromDBAtIndex(i,dbHelper.getReadableDatabase());
-                }
+
+                    String[] imageUris = getImageUriFromDBAtIndex(1,dbHelper.getReadableDatabase());
+
                 getAllOnlineResource();
             }
         });
@@ -354,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    void getImageUriFromDBAtIndex(int index, SQLiteDatabase db) {
+    String[]  getImageUriFromDBAtIndex(int index, SQLiteDatabase db) {
 //  read information
         String[] projection = {
                 "Id",
@@ -363,33 +363,45 @@ public class MainActivity extends AppCompatActivity {
 
         // Filter results WHERE "title" = 'My Title'
         String column_name_read_filter = "Id";
-        String selection = column_name_read_filter + " = ?";
+        String selection = column_name_read_filter + " = *";
         String[] selectionArgs = {""+index};
 
 // How you want the results sorted in the resulting Cursor
         String sortOrder =
                 "Id" + " DESC";
         String tableName_read = "Image";
-        Cursor cursor = db.query(
-                tableName_read,                     // The table to query
-                projection,                               // The columns to return
-                selection,                                // The columns for the WHERE clause
-                selectionArgs,                            // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
-        );
+//        Cursor cursor = db.query(
+//                tableName_read,                     // The table to query
+//                projection,                               // The columns to return
+//                selection,                                // The columns for the WHERE clause
+//                selectionArgs,                            // The values for the WHERE clause
+//                null,                                     // don't group the rows
+//                null,                                     // don't filter by row groups
+//                sortOrder                                 // The sort order
+//        );
+
+        String query = "SELECT * FROM "+tableName_read;
+
+        Cursor  cursor = db.rawQuery(query,null);
+
         Log.i("cursor", "cursor !");
-        List itemIds = new ArrayList<>();
+        ArrayList<String> itemIds = new ArrayList<String>();
         while (cursor.moveToNext()) {
-            long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
-            String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
-            Log.i("cursor", "cursor ImageUri = " + ss);
-            itemIds.add(itemId);
+           // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
+            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
+            String ss =  cursor.getString(cursor.getColumnIndex("ImageUri"));
+            Log.i("cursor", "1cursor ImageUri = " + ss);
+            itemIds.add(ss);
         }
         cursor.close();
         // end of read information
+        String[] uris = itemIds.toArray(new String[itemIds.size()]);
 
+//        for(int i = 0; i< uris.length;i++){
+//            Log.i("cursor", "uris["+i+"] = " + uris[i]);
+//        }
+
+        return uris;
     }
 
 
