@@ -32,7 +32,7 @@ public class UpdateGridViewWithDataBase extends AsyncTask<Object,Object,Object> 
 
     @Override
     protected Object doInBackground(Object... params) {
-        imageUris2 = getImageUriFromDB((SQLiteDatabase)params[0]);
+        imageUris2 = getALLImageUriFromDB((SQLiteDatabase)params[0]);
         return null;
     }
 
@@ -42,7 +42,7 @@ public class UpdateGridViewWithDataBase extends AsyncTask<Object,Object,Object> 
     }
 
 
-    Uri[]  getImageUriFromDB( SQLiteDatabase db) {
+    Uri[]  getALLImageUriFromDB( SQLiteDatabase db) {
 //  read information
         String[] projection = {
                 "Id",

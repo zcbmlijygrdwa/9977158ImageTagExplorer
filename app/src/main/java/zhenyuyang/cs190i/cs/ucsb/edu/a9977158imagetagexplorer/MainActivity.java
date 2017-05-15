@@ -50,11 +50,6 @@ public class MainActivity extends AppCompatActivity {
     final int PICK_PHOTO_REQUEST = 5;
     final int TAKE_PHOTO_REQUEST = 4;
 
-    public final String APP_TAG = "MyCustomApp";
-    public final static int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1034;
-    public String photoFileName = "photo0000.jpg";
-
-
     ImageTagDatabaseHelper dbHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,25 +76,6 @@ public class MainActivity extends AppCompatActivity {
         fab_takePhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.i("my", "FloatingActionButton");
-                //Intent cameraI = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-
-
-                /*
-// Whenever you’d like to launch your camera, do this:
-// create Intent to take a picture and return control to the calling application
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, getPhotoFileUri(photoFileName));
-// set the image file name
-// If you call startActivityForResult() using an intent that no app can handle, your app willcrash.
-// So as long as the result is not null, it's safe to use the intent.
-                if (intent.resolveActivity(getPackageManager()) != null) {
-// Start the image capture intent to take photo
-                    startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-                }
-
-*/
-
-
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(intent, TAKE_PHOTO_REQUEST);
             }
@@ -127,11 +103,8 @@ public class MainActivity extends AppCompatActivity {
                 updateGridViewWithDB(dbHelper.getReadableDatabase());
             }
         });
-
-
-
-
-        imageUris = getImageUriFromDB(dbHelper.getReadableDatabase());
+        imageUris = getALLImageUriFromDB(dbHelper.getReadableDatabase());
+        String [] test = getALLTagsUriFromDB(dbHelper.getReadableDatabase());
         // ==============    GridView   =====================
         SelelctImageGrid adapter = new SelelctImageGrid(this, imageUris);
         grid = (GridView) findViewById(R.id.grid);
@@ -142,8 +115,6 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 Log.i("addOnItemTouchListener", "onItemClick position =" + position);
-
-
             }
         });
 
@@ -232,65 +203,8 @@ public class MainActivity extends AppCompatActivity {
                 textView.setText(textView.getText() + "\n\n" + num);
             }
         });
-
-
-//        int index = 2; //0~10
-//        TaggedImageRetriever.getTaggedImageByIndex(index, new TaggedImageRetriever.TaggedImageResultListener() {
-//            @Override
-//            public void onTaggedImage(TaggedImageRetriever.TaggedImage image) {
-//                if (image != null) {
-//                    try (FileOutputStream stream = openFileOutput("Test.jpg", Context.MODE_PRIVATE)) {
-//                        image.image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-//                        image.image.recycle();
-//                    } catch (IOException e) {
-//                    }
-//
-//                    String filePathURI = Uri.fromFile(getFileStreamPath("Test.jpg")).toString();
-//                    Log.i("onTaggedImage", "getFileStreamPath(\"Test.jpg\") = " + filePathURI);
-//                    // Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
-//                    // imageView.setImageBitmap(image.image);
-//                    StringBuilder tagList = new StringBuilder();
-//                    for (String p : image.tags) {
-//                        tagList.append(p + "\n");
-//                    }
-//                    textView.setText(textView.getText() + "\n\n" + tagList.toString());
-//                }
-//            }
-//
-//            @Override
-//            public void onTaggedImage(TaggedImageRetriever.TaggedImage image, int index) {
-//
-//            }
-//        });
-
-
     }
 
-    // Returns the Uri for a photo stored on disk given the fileName
-    public Uri getPhotoFileUri(String fileName) {
-// Only continue if the SD Card is mounted
-        if (isExternalStorageAvailable()) {
-// Get safe storage directory for photos
-// Use `getExternalFilesDir` on Context to access package-specific directories.
-// This way, we don't need to request external read/write runtime permissions.
-            File mediaStorageDir = new
-                    File( getExternalFilesDir(Environment.DIRECTORY_PICTURES), APP_TAG);
-// Create the storage directory if it does not exist
-            if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()){
-                Log.d(APP_TAG, "failed to create directory");
-            }
-// Return the file target for the photo based on filename
-            File file = new File(mediaStorageDir.getPath() + File.separator + fileName);
-// wrap File object into a content provider, required for API >= 24
-            return FileProvider.getUriForFile(MainActivity.this, "com.codepath.fileprovider", file);
-        }
-        return null; }
-
-    // Returns true if external storage for photos is available
-    private boolean isExternalStorageAvailable() {
-        String state = Environment.getExternalStorageState();
-        return state.equals(Environment.MEDIA_MOUNTED);
-    }
 
     void updateGridViewWithDB(SQLiteDatabase db){
         //imageUris = getImageUriFromDB(db);
@@ -318,6 +232,7 @@ public class MainActivity extends AppCompatActivity {
                 Uri selectedImageURI = data.getData();
                 Log.i("onActivityResult", "result = " + selectedImageURI.toString());
                 saveImageUriToDB(selectedImageURI.toString(), dbHelper.getReadableDatabase());
+                saveTagUriToDB("Tag_iamge_picked", dbHelper.getWritableDatabase());
                 updateGridViewWithDB(dbHelper.getWritableDatabase());
                 //Uri[] imageUris = { selectedImageURI,selectedImageURI,selectedImageURI};
 //                imageUris = addUri(imageUris,selectedImageURI);
@@ -353,19 +268,9 @@ public class MainActivity extends AppCompatActivity {
                     //Uri selectedImageURI = data.getData();
                     Log.i("onActivityResult", "result44 = " + filePathURI.toString());
                     saveImageUriToDB(filePathURI.toString(), dbHelper.getReadableDatabase());
+                    saveTagUriToDB("Tag_camera_captured", dbHelper.getWritableDatabase());
                     updateGridViewWithDB(dbHelper.getWritableDatabase());
                 }
-
-
-
-
-                //Uri[] imageUris = { selectedImageURI,selectedImageURI,selectedImageURI};
-//                imageUris = addUri(imageUris,selectedImageURI);
-//
-//                SelelctImageGrid adapter = new SelelctImageGrid(SelectImageActivity.this, web, imageUris);
-//                Log.i("onActivityResult", "imageUris.length = " + imageUris.length);
-//                grid=(GridView)findViewById(R.id.grid);
-//                grid.setAdapter(adapter);
             }
             if (resultCode == Activity.RESULT_CANCELED) {
                 Log.i("onActivityResult", "NEW_TITLE_REQUEST RESULT_CANCELED");
@@ -373,25 +278,6 @@ public class MainActivity extends AppCompatActivity {
                 //Write your code if there's no result
             }
         }
-
-
-        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                Uri takenPhotoUri = getPhotoFileUri(photoFileName);
-                Log.i("onActivityResult", "takenPhotoUri2 = "+takenPhotoUri);
-// by this point we have the camera photo on disk
-                //Bitmap takenImage = BitmapFactory.decodeFile(takenPhotoUri.getPath());
-// RESIZE BITMAP (if desired)
-// Load the taken image into a preview
-               // ImageView ivPreview = (ImageView) findViewById(R.id.ivPreview);
-                //ivPreview.setImageBitmap(takenImage);
-            } else { // Result was a failure
-                Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
-            }
-        }
-
-
-
     }
 
 
@@ -447,7 +333,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onTaggedImage(TaggedImageRetriever.TaggedImage image) {
 
                 }
-
                 @Override
                 public void onTaggedImage(TaggedImageRetriever.TaggedImage image, int index) {
                     if (image != null) {
@@ -459,6 +344,8 @@ public class MainActivity extends AppCompatActivity {
 
                         String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
                         saveImageUriToDB(filePathURI, database_w);
+                        //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+
                         Log.i("onTaggedImage", "getFileStreamPath = " + filePathURI);
                         updateGridViewWithDB(database_r);  //dynamically shows the downloaded images.
                         //Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
@@ -466,6 +353,7 @@ public class MainActivity extends AppCompatActivity {
                         StringBuilder tagList = new StringBuilder();
                         for (String p : image.tags) {
                             tagList.append(p + "\n");
+                            saveTagUriToDB(p, database_w);
                         }
                         // textView.setText(textView.getText() + "\n\n" + tagList.toString());
                     }
@@ -477,9 +365,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     void saveImageUriToDB(String uri_input, SQLiteDatabase database_w) {
-
         Log.i("SQLiteDatabase", "database = " + database_w.toString());
-
         // Insert the new row, returning the primary key value of the new row
         String tableName_insert = "Image";
 
@@ -496,13 +382,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
+
     Uri[] getImageUriFromDBAtIndex(int index, SQLiteDatabase db) {
 //  read information
         String[] projection = {
                 "Id",
                 "ImageUri",
         };
-
         // Filter results WHERE "title" = 'My Title'
         String column_name_read_filter = "Id";
         String selection = column_name_read_filter + " = *";
@@ -542,12 +430,11 @@ public class MainActivity extends AppCompatActivity {
 //        for(int i = 0; i< uris.length;i++){
 //            Log.i("cursor", "uris["+i+"] = " + uris[i]);
 //        }
-
         return uris;
     }
 
 
-    Uri[] getImageUriFromDB(SQLiteDatabase db) {
+    Uri[] getALLImageUriFromDB(SQLiteDatabase db) {
 //  read information
         String[] projection = {
                 "Id",
@@ -596,6 +483,79 @@ public class MainActivity extends AppCompatActivity {
 
         return uris;
     }
+
+
+    void saveTagUriToDB(String tag_input, SQLiteDatabase database_w) {
+        Log.i("SQLiteDatabase", "database = " + database_w.toString());
+        // Insert the new row, returning the primary key value of the new row
+        String tableName_insert = "Tag";
+
+        // Create a new map of values, where column names are the keys
+        ContentValues values = new ContentValues();
+        String column_name_insert = "Text";
+        values.put(column_name_insert, tag_input);
+        try {
+            long newRowId = database_w.insertOrThrow(tableName_insert, null, values);
+            Log.i("SQLiteDatabase", "Tag saved = "+tag_input+", newRowId for tag = " + newRowId);
+
+        } catch (Exception e) {
+            Log.i("SQLiteDatabase", "Exception,   " + tag_input+"   has a duplicated value in the database");
+
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+
+    String[] getALLTagsUriFromDB(SQLiteDatabase db) {
+//  read information
+        String[] projection = {
+                "Id",
+                "Text",
+        };
+
+        // Filter results WHERE "title" = 'My Title'
+        String column_name_read_filter = "Id";
+        String selection = column_name_read_filter + " = *";
+
+
+// How you want the results sorted in the resulting Cursor
+        String sortOrder =
+                "Id" + " DESC";
+        String tableName_read = "Tag";
+//        Cursor cursor = db.query(
+//                tableName_read,                     // The table to query
+//                projection,                               // The columns to return
+//                selection,                                // The columns for the WHERE clause
+//                selectionArgs,                            // The values for the WHERE clause
+//                null,                                     // don't group the rows
+//                null,                                     // don't filter by row groups
+//                sortOrder                                 // The sort order
+//        );
+        String query = "SELECT * FROM " + tableName_read;
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        Log.i("cursor", "cursor Text !");
+        ArrayList<String> itemIds = new ArrayList<String>();
+        while (cursor.moveToNext()) {
+            // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
+            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
+            String ss = (cursor.getString(cursor.getColumnIndex("Text")));
+            Log.i("cursor", "cursor Text = " + ss);
+            itemIds.add(ss);
+        }
+        cursor.close();
+        // end of read information
+        String[] Tags = itemIds.toArray(new String[itemIds.size()]);
+
+        for(int i = 0; i< Tags.length;i++){
+            Log.i("Tags", "Tags["+i+"] = " + Tags[i]);
+        }
+
+        return Tags;
+    }
+
+
 
 
 }
