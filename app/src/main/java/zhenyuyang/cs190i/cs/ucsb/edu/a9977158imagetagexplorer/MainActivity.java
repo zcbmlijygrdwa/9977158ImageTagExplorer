@@ -1,5 +1,6 @@
 package zhenyuyang.cs190i.cs.ucsb.edu.a9977158imagetagexplorer;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -34,11 +35,12 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     static Random rnd = new Random();
-//    String[] web = {
+    //    String[] web = {
 //            "Google"
 //    } ;
     Uri[] imageUris;
     GridView grid;
+    final int NEW_PHOTO_REQUEST = 5;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,9 +49,20 @@ public class MainActivity extends AppCompatActivity {
         ImageTagDatabaseHelper.Initialize(this);
         final ImageTagDatabaseHelper dbHelper = ImageTagDatabaseHelper.GetInstance();
 
-//        //  write information
-//        SQLiteDatabase database_w;
-//        database_w = dbHelper.getWritableDatabase();
+// register floatingActionButton
+
+
+        FloatingActionButton myFab = (FloatingActionButton) findViewById(R.id.fab);
+        myFab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Log.i("my", "FloatingActionButton");
+                Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(pickPhoto.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) , NEW_PHOTO_REQUEST);//one can be replaced with any action code
+            }
+        });
+
+        // end of register floatingActionButton
 
         Button button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -63,20 +76,27 @@ public class MainActivity extends AppCompatActivity {
 //                SQLiteDatabase database_w;
 //                database_w = dbHelper.getWritableDatabase();
 
-                imageUris = getImageUriFromDB(dbHelper.getReadableDatabase());
+
 
                 getAllOnlineResource();
 
 
-                YourTask y  =new YourTask( new YourTask.OnTaskCompleted() {
+                imageUris = getImageUriFromDB(dbHelper.getReadableDatabase());
+
+                YourTask y = new YourTask(new YourTask.OnTaskCompleted() {
 
                     @Override
                     public void onTaskCompleted(Uri[] u) {
-                        Log.i("my", "onTaskCompleted, u.length = "+u.length);
+                        Log.i("my", "onTaskCompleted, u.length = " + u.length);
+
+
+                        SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), u);
+                        grid = (GridView) findViewById(R.id.grid);
+                        grid.setAdapter(adapter);
+
                     }
                 });
                 y.execute(dbHelper.getReadableDatabase());
-//
 
             }
         });
@@ -84,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         imageUris = getImageUriFromDB(dbHelper.getReadableDatabase());
         // ==============    GridView   =====================
         SelelctImageGrid adapter = new SelelctImageGrid(this, imageUris);
-        grid=(GridView)findViewById(R.id.grid);
+        grid = (GridView) findViewById(R.id.grid);
         grid.setAdapter(adapter);
         grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -101,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         // ==============    ImageTagDatabaseHelper   =====================
-
 
 
 // *****************  ImageTagDatabaseHelper  Test *****************
@@ -173,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         final TextView textView = (TextView) findViewById(R.id.textView);
-       // final ImageView imageView = (ImageView) findViewById(R.id.imageView);
+        // final ImageView imageView = (ImageView) findViewById(R.id.imageView);
 
 
         TaggedImageRetriever.getNumImages(new TaggedImageRetriever.ImageNumResultListener() {
@@ -198,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
 
                     String filePathURI = Uri.fromFile(getFileStreamPath("Test.jpg")).toString();
                     Log.i("onTaggedImage", "getFileStreamPath(\"Test.jpg\") = " + filePathURI);
-                   // Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
+                    // Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
                     // imageView.setImageBitmap(image.image);
                     StringBuilder tagList = new StringBuilder();
                     for (String p : image.tags) {
@@ -216,6 +235,38 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+
+
+        if (requestCode == NEW_PHOTO_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                Uri selectedImageURI = data.getData();
+                Log.i("onActivityResult", "result = " + selectedImageURI.toString());
+
+                //Uri[] imageUris = { selectedImageURI,selectedImageURI,selectedImageURI};
+//                imageUris = addUri(imageUris,selectedImageURI);
+//
+//                SelelctImageGrid adapter = new SelelctImageGrid(SelectImageActivity.this, web, imageUris);
+//                Log.i("onActivityResult", "imageUris.length = " + imageUris.length);
+//                grid=(GridView)findViewById(R.id.grid);
+//                grid.setAdapter(adapter);
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                Log.i("onActivityResult", "NEW_TITLE_REQUEST RESULT_CANCELED");
+                Toast.makeText(this, "Pick photo canceled", Toast.LENGTH_LONG).show();
+                //Write your code if there's no result
+            }
+        }
+
+    }
+
+
 
     @Override
     protected void onDestroy() {
@@ -278,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
-                        saveImageUriToDB(filePathURI,database_w);
+                        saveImageUriToDB(filePathURI, database_w);
                         Log.i("onTaggedImage", "getFileStreamPath = " + filePathURI);
                         //Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
                         // imageView.setImageBitmap(image.image);
@@ -315,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    Uri[]  getImageUriFromDBAtIndex(int index, SQLiteDatabase db) {
+    Uri[] getImageUriFromDBAtIndex(int index, SQLiteDatabase db) {
 //  read information
         String[] projection = {
                 "Id",
@@ -325,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
         // Filter results WHERE "title" = 'My Title'
         String column_name_read_filter = "Id";
         String selection = column_name_read_filter + " = *";
-        String[] selectionArgs = {""+index};
+        String[] selectionArgs = {"" + index};
 
 // How you want the results sorted in the resulting Cursor
         String sortOrder =
@@ -341,67 +392,16 @@ public class MainActivity extends AppCompatActivity {
 //                sortOrder                                 // The sort order
 //        );
 
-        String query = "SELECT * FROM "+tableName_read;
+        String query = "SELECT * FROM " + tableName_read;
 
-        Cursor  cursor = db.rawQuery(query,null);
-
-        Log.i("cursor", "cursor !");
-        ArrayList<Uri> itemIds = new ArrayList<Uri>();
-        while (cursor.moveToNext()) {
-           // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
-            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
-            Uri ss =  Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
-            Log.i("cursor", "1cursor ImageUri = " + ss);
-            itemIds.add(ss);
-        }
-        cursor.close();
-        // end of read information
-        Uri[] uris = itemIds.toArray(new Uri[itemIds.size()]);
-
-//        for(int i = 0; i< uris.length;i++){
-//            Log.i("cursor", "uris["+i+"] = " + uris[i]);
-//        }
-
-        return uris;
-    }
-
-
-    Uri[]  getImageUriFromDB( SQLiteDatabase db) {
-//  read information
-        String[] projection = {
-                "Id",
-                "ImageUri",
-        };
-
-        // Filter results WHERE "title" = 'My Title'
-        String column_name_read_filter = "Id";
-        String selection = column_name_read_filter + " = *";
-
-
-// How you want the results sorted in the resulting Cursor
-        String sortOrder =
-                "Id" + " DESC";
-        String tableName_read = "Image";
-//        Cursor cursor = db.query(
-//                tableName_read,                     // The table to query
-//                projection,                               // The columns to return
-//                selection,                                // The columns for the WHERE clause
-//                selectionArgs,                            // The values for the WHERE clause
-//                null,                                     // don't group the rows
-//                null,                                     // don't filter by row groups
-//                sortOrder                                 // The sort order
-//        );
-
-        String query = "SELECT * FROM "+tableName_read;
-
-        Cursor  cursor = db.rawQuery(query,null);
+        Cursor cursor = db.rawQuery(query, null);
 
         Log.i("cursor", "cursor !");
         ArrayList<Uri> itemIds = new ArrayList<Uri>();
         while (cursor.moveToNext()) {
             // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
             //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
-            Uri ss =  Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
+            Uri ss = Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
             Log.i("cursor", "1cursor ImageUri = " + ss);
             itemIds.add(ss);
         }
@@ -417,10 +417,55 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    Uri[] getImageUriFromDB(SQLiteDatabase db) {
+//  read information
+        String[] projection = {
+                "Id",
+                "ImageUri",
+        };
+
+        // Filter results WHERE "title" = 'My Title'
+        String column_name_read_filter = "Id";
+        String selection = column_name_read_filter + " = *";
 
 
+// How you want the results sorted in the resulting Cursor
+        String sortOrder =
+                "Id" + " DESC";
+        String tableName_read = "Image";
+//        Cursor cursor = db.query(
+//                tableName_read,                     // The table to query
+//                projection,                               // The columns to return
+//                selection,                                // The columns for the WHERE clause
+//                selectionArgs,                            // The values for the WHERE clause
+//                null,                                     // don't group the rows
+//                null,                                     // don't filter by row groups
+//                sortOrder                                 // The sort order
+//        );
 
+        String query = "SELECT * FROM " + tableName_read;
 
+        Cursor cursor = db.rawQuery(query, null);
+
+        Log.i("cursor", "cursor !");
+        ArrayList<Uri> itemIds = new ArrayList<Uri>();
+        while (cursor.moveToNext()) {
+            // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
+            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
+            Uri ss = Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
+            Log.i("cursor", "1cursor ImageUri = " + ss);
+            itemIds.add(ss);
+        }
+        cursor.close();
+        // end of read information
+        Uri[] uris = itemIds.toArray(new Uri[itemIds.size()]);
+
+//        for(int i = 0; i< uris.length;i++){
+//            Log.i("cursor", "uris["+i+"] = " + uris[i]);
+//        }
+
+        return uris;
+    }
 
 
 }
