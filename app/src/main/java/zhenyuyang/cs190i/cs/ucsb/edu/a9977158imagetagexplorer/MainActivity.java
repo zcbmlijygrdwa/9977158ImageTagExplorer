@@ -192,34 +192,34 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        int index = 2; //0~10
-        TaggedImageRetriever.getTaggedImageByIndex(index, new TaggedImageRetriever.TaggedImageResultListener() {
-            @Override
-            public void onTaggedImage(TaggedImageRetriever.TaggedImage image) {
-                if (image != null) {
-                    try (FileOutputStream stream = openFileOutput("Test.jpg", Context.MODE_PRIVATE)) {
-                        image.image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                        image.image.recycle();
-                    } catch (IOException e) {
-                    }
-
-                    String filePathURI = Uri.fromFile(getFileStreamPath("Test.jpg")).toString();
-                    Log.i("onTaggedImage", "getFileStreamPath(\"Test.jpg\") = " + filePathURI);
-                    // Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
-                    // imageView.setImageBitmap(image.image);
-                    StringBuilder tagList = new StringBuilder();
-                    for (String p : image.tags) {
-                        tagList.append(p + "\n");
-                    }
-                    textView.setText(textView.getText() + "\n\n" + tagList.toString());
-                }
-            }
-
-            @Override
-            public void onTaggedImage(TaggedImageRetriever.TaggedImage image, int index) {
-
-            }
-        });
+//        int index = 2; //0~10
+//        TaggedImageRetriever.getTaggedImageByIndex(index, new TaggedImageRetriever.TaggedImageResultListener() {
+//            @Override
+//            public void onTaggedImage(TaggedImageRetriever.TaggedImage image) {
+//                if (image != null) {
+//                    try (FileOutputStream stream = openFileOutput("Test.jpg", Context.MODE_PRIVATE)) {
+//                        image.image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+//                        image.image.recycle();
+//                    } catch (IOException e) {
+//                    }
+//
+//                    String filePathURI = Uri.fromFile(getFileStreamPath("Test.jpg")).toString();
+//                    Log.i("onTaggedImage", "getFileStreamPath(\"Test.jpg\") = " + filePathURI);
+//                    // Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
+//                    // imageView.setImageBitmap(image.image);
+//                    StringBuilder tagList = new StringBuilder();
+//                    for (String p : image.tags) {
+//                        tagList.append(p + "\n");
+//                    }
+//                    textView.setText(textView.getText() + "\n\n" + tagList.toString());
+//                }
+//            }
+//
+//            @Override
+//            public void onTaggedImage(TaggedImageRetriever.TaggedImage image, int index) {
+//
+//            }
+//        });
 
 
     }
@@ -310,6 +310,7 @@ public class MainActivity extends AppCompatActivity {
         ImageTagDatabaseHelper.Initialize(this);
         ImageTagDatabaseHelper dbHelper = ImageTagDatabaseHelper.GetInstance();
         final SQLiteDatabase database_w = dbHelper.getWritableDatabase();
+        final SQLiteDatabase database_r = dbHelper.getReadableDatabase();
         for (int i = 0; i < count; i++) {
             index = i;
             Log.i("getAllOnlineImages", "i = " + i);
@@ -333,6 +334,7 @@ public class MainActivity extends AppCompatActivity {
                         String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
                         saveImageUriToDB(filePathURI, database_w);
                         Log.i("onTaggedImage", "getFileStreamPath = " + filePathURI);
+                        updateGridViewWithDB(database_r);
                         //Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
                         // imageView.setImageBitmap(image.image);
                         StringBuilder tagList = new StringBuilder();

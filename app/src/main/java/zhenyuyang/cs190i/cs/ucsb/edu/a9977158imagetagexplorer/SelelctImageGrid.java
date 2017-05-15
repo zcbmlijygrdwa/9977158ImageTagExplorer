@@ -46,7 +46,7 @@ public class SelelctImageGrid extends BaseAdapter {
     @Override
     public int getCount() {
         // TODO Auto-generated method stub
-        return ImageUris.length+1;
+        return ImageUris.length;
     }
 
     @Override
@@ -63,14 +63,15 @@ public class SelelctImageGrid extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        /*
         // TODO Auto-generated method stub
         View grid;
         LayoutInflater inflater = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         if (convertView == null) {
-            if(position!=ImageUris.length) {
-                grid = new View(mContext);
+//            if(position!=ImageUris.length) {
+                //grid = new View(mContext);
                 grid = inflater.inflate(R.layout.grid_single, null);
                 //TextView textView = (TextView) grid.findViewById(R.id.grid_text);
                 ImageView imageView = (ImageView) grid.findViewById(R.id.grid_image);
@@ -78,20 +79,37 @@ public class SelelctImageGrid extends BaseAdapter {
                 //imageView.setImageResource(Imageid[position]);
                 //imageView.setImageURI(ImageUris[position]);
                 Picasso.with(parent.getContext()).load(ImageUris[position]).fit().into(imageView);
-            }
-            else{
-                grid = new View(mContext);
-                grid = inflater.inflate(R.layout.grid_single, null);
-                //TextView textView = (TextView) grid.findViewById(R.id.grid_text);
-                ImageView imageView = (ImageView) grid.findViewById(R.id.grid_image);
-                //textView.setText(web[position]);
-                imageView.setBackgroundColor(Color.GRAY);
-                imageView.setImageResource(R.drawable.kong);
-                //imageView.setImageURI(ImageUris[position]);
-            }
+//            }
+//            else{
+//                grid = new View(mContext);
+//                grid = inflater.inflate(R.layout.grid_single, null);
+//                //TextView textView = (TextView) grid.findViewById(R.id.grid_text);
+//                ImageView imageView = (ImageView) grid.findViewById(R.id.grid_image);
+//                //textView.setText(web[position]);
+//                imageView.setBackgroundColor(Color.GRAY);
+//                imageView.setImageResource(R.drawable.kong);
+//                //imageView.setImageURI(ImageUris[position]);
+//            }
         } else {
             grid = (View) convertView;
         }
+
+        return grid;
+        */
+
+        // TODO Auto-generated method stub
+        View grid;
+        if(convertView==null)
+        {
+            LayoutInflater li = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+            grid = li.inflate(R.layout.grid_single, null);
+        }else{
+            grid = convertView;
+        }
+        ImageView imageView = (ImageView) grid.findViewById(R.id.grid_image);
+        Picasso.with(parent.getContext()).load(ImageUris[position]).fit().into(imageView);
+        //iv.setImageResource(R.drawable.icon);
 
         return grid;
     }
