@@ -81,23 +81,22 @@ public class MainActivity extends AppCompatActivity {
                 getAllOnlineResource();
 
 
-                imageUris = getImageUriFromDB(dbHelper.getReadableDatabase());
-
-                YourTask y = new YourTask(new YourTask.OnTaskCompleted() {
-
-                    @Override
-                    public void onTaskCompleted(Uri[] u) {
-                        Log.i("my", "onTaskCompleted, u.length = " + u.length);
-
-
-                        SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), u);
-                        grid = (GridView) findViewById(R.id.grid);
-                        grid.setAdapter(adapter);
-
-                    }
-                });
-                y.execute(dbHelper.getReadableDatabase());
-
+//                imageUris = getImageUriFromDB(dbHelper.getReadableDatabase());
+//                YourTask y = new YourTask(new YourTask.OnTaskCompleted() {
+//
+//                    @Override
+//                    public void onTaskCompleted(Uri[] u) {
+//                        Log.i("my", "onTaskCompleted, u.length = " + u.length);
+//
+//
+//                        SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), u);
+//                        grid = (GridView) findViewById(R.id.grid);
+//                        grid.setAdapter(adapter);
+//
+//                    }
+//                });
+//                y.execute(dbHelper.getReadableDatabase());
+                updateGridViewWithDataBase(dbHelper.getReadableDatabase());
             }
         });
 
@@ -236,7 +235,25 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    void updateGridViewWithDataBase(SQLiteDatabase db){
 
+        //imageUris = getImageUriFromDB(db);
+        YourTask y = new YourTask(new YourTask.OnTaskCompleted() {
+
+            @Override
+            public void onTaskCompleted(Uri[] temp_uris) {
+                Log.i("my", "onTaskCompleted, u.length = " + temp_uris.length);
+
+
+                SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), temp_uris);
+                grid = (GridView) findViewById(R.id.grid);
+                grid.setAdapter(adapter);
+
+            }
+        });
+        y.execute(db);
+
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
