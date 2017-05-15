@@ -3,6 +3,7 @@
     package="zhenyuyang.cs190i.cs.ucsb.edu.a9977158imagetagexplorer">
     <uses-permission android:name="android.permission.INTERNET" />
     <application
+
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
