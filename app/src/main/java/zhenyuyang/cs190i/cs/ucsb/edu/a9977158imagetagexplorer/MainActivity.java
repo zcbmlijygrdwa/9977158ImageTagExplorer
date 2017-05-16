@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        String[] StringsForAutoComplete= getALLTagsUriFromDB(dbHelper.getReadableDatabase());
+        final String[] StringsForAutoComplete= getALLTagsUriFromDB(dbHelper.getReadableDatabase());
 
 
 
@@ -243,9 +243,11 @@ public class MainActivity extends AppCompatActivity {
 
                 String clickedText = imageUris[position].toString();
                 Log.i("addOnItemTouchListener", "clickedText =" + clickedText);
-                //dialog fragment
+
+                
+                //display dialog fragment
                 FragmentManager fm = getFragmentManager();
-                EditNameDialogFragment editNameDialogFragment = EditNameDialogFragment.newInstance("Detail",clickedText,clickedTagList);
+                EditNameDialogFragment editNameDialogFragment = EditNameDialogFragment.newInstance("Detail",clickedText,clickedTagList,StringsForAutoComplete);
                 editNameDialogFragment.show(fm, "fragment_edit_name");
 
 

@@ -32,8 +32,9 @@ import java.util.Arrays;
 
 public class EditNameDialogFragment extends DialogFragment {
      ArrayList<String> tags= new  ArrayList<String>();
+    ArrayList<String> clickedTagList= new  ArrayList<String>();
      RecyclerView tagRecyclerView;
-    String[] clickedTagList;
+    String[] StringsForAutoComplete;
     private EditText mEditText;
 
 
@@ -43,12 +44,13 @@ public class EditNameDialogFragment extends DialogFragment {
         // Use `newInstance` instead as shown below
     }
 
-    public static EditNameDialogFragment newInstance(String title,String ImageUri,String[] clickedTagList) {
+    public static EditNameDialogFragment newInstance(String title,String ImageUri,String[] clickedTagList,String[] StringsForAutoComplete) {
         EditNameDialogFragment frag = new EditNameDialogFragment();
         Bundle args = new Bundle();
         args.putString("title", title);
         args.putString("imageUri", ImageUri);
         args.putStringArray("clickedTagList",clickedTagList);
+        args.putStringArray("StringsForAutoComplete",StringsForAutoComplete);
         frag.setArguments(args);
         return frag;
     }
@@ -69,7 +71,10 @@ public class EditNameDialogFragment extends DialogFragment {
         String imageUri = getArguments().getString("imageUri", "file:///data/data/zhenyuyang.cs190i.cs.ucsb.edu.a9977158imagetagexplorer/files/Test5.jpg");
 
         String [] tagsList2 = {"qwer","weewer","qwgrqeg3","gh","t42","my","342gr","3rvf","uizxcvo","qewdvs","qwefcavd"};
-        clickedTagList = getArguments().getStringArray("clickedTagList");
+        clickedTagList = new ArrayList<String>(Arrays.asList(getArguments().getStringArray("clickedTagList")));
+
+        StringsForAutoComplete = getArguments().getStringArray("StringsForAutoComplete");
+
         getDialog().setTitle(title);
         ImageView imageView_frag = (ImageView) view.findViewById(R.id.imageView_frag);
         Log.i("my", "Uri.parse(imageUri) = " + (Uri.parse(imageUri)));
@@ -79,9 +84,6 @@ public class EditNameDialogFragment extends DialogFragment {
         Picasso.with(view.getContext()).load(Uri.parse(imageUri)).fit().into(imageView_frag);
 
 
-        tags.add("rwet3w");
-        tags.add("134r2");
-        //String [] tags
 
         tagRecyclerView = (RecyclerView) view.findViewById(R.id.tag_list_frag);
 
@@ -89,16 +91,16 @@ public class EditNameDialogFragment extends DialogFragment {
         tagRecyclerView.setLayoutManager(linearLayoutManager);
         //update tags RV
 
-        TagRVAdapter tagAdapter = new TagRVAdapter(new ArrayList<String>(Arrays.asList(clickedTagList)));
+        TagRVAdapter tagAdapter = new TagRVAdapter(new ArrayList<String>(clickedTagList));
         tagRecyclerView.setAdapter(tagAdapter);
-        Log.i("my", "tags.size()-1 = " + (tags.size() - 1));
+        Log.i("my", "tags.size()-1 = " + (clickedTagList.size() - 1));
 
-        tagRecyclerView.post(new Runnable() {
-            @Override
-            public void run() {
-                tagRecyclerView.smoothScrollToPosition(tags.size() - 1);
-            }
-        });
+//        tagRecyclerView.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                tagRecyclerView.smoothScrollToPosition(clickedTagList.size() - 1);
+//            }
+//        });
 
 
 
@@ -107,7 +109,7 @@ public class EditNameDialogFragment extends DialogFragment {
                 view.findViewById(R.id.autoCompleteTextView_frag);
 
         ArrayAdapter<String> auto_complete_adapter = new ArrayAdapter<String>
-                (this,android.R.layout.select_dialog_item, StringsForAutoComplete);
+                (view.getContext(),android.R.layout.select_dialog_item, StringsForAutoComplete);
 
         autocomplete.setThreshold(1);
         autocomplete.setAdapter(auto_complete_adapter);
@@ -118,29 +120,25 @@ public class EditNameDialogFragment extends DialogFragment {
                         if (actionId == EditorInfo.IME_ACTION_DONE) {
                             Log.i("my", "TextView = "+v.getText().toString());
                             if(!v.getText().toString().equals("")) {
-                                //tags.add(v.getText().toString());   //not adding
-                                if(tags.size()==0){
-                                    tags.add(v.getText().toString());
-                                }
-                                else{
-                                    tags.set(0,v.getText().toString());
-                                }
+                                clickedTagList.add(v.getText().toString());   //not adding
 
                                 //update tags RV
-                                TagRVAdapter tagAdapter = new TagRVAdapter(tags);
+                                TagRVAdapter tagAdapter = new TagRVAdapter(clickedTagList);
                                 tagRecyclerView.setAdapter(tagAdapter);
-                                Log.i("my", "tags.size()-1 = " + (tags.size() - 1));
 
                                 tagRecyclerView.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        tagRecyclerView.smoothScrollToPosition(tags.size() - 1);
+                                        tagRecyclerView.smoothScrollToPosition(clickedTagList.size() - 1);
                                     }
                                 });
-                                Uri[] LinkedUris = getLinkedDataFromDBByTag(v.getText().toString(),dbHelper.getReadableDatabase());  //test linked table
-                                SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), LinkedUris);
-                                grid = (GridView) findViewById(R.id.grid);
-                                grid.setAdapter(adapter);
+
+//                                if(tags.size()==0){
+//                                    tags.add(v.getText().toString());
+//                                }
+//                                else{
+//                                    tags.set(0,v.getText().toString());
+//                                }
 
                                 v.setText("");
                             }
