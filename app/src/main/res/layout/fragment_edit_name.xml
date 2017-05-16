@@ -2,12 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/edit_name"
     android:layout_width="wrap_content" android:layout_height="wrap_content"
-    android:layout_gravity="center" android:orientation="vertical"  >
+    android:layout_gravity="center" android:orientation="vertical"
+    >
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/imageView_frag"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="200sp"
+        android:layout_gravity="center"
         android:src="@drawable/test" />
 
     <AutoCompleteTextView
@@ -17,12 +19,13 @@
         android:hint="Tag"
         android:singleLine="true"
         android:imeOptions="actionDone"
-        />
+        android:padding="10sp"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/tag_list_frag"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingBottom="5sp">
 
     </android.support.v7.widget.RecyclerView>
 </LinearLayout>

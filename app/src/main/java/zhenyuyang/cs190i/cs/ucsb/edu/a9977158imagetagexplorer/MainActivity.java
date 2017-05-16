@@ -238,11 +238,11 @@ public class MainActivity extends AppCompatActivity {
                                     int position, long id) {
                 Log.i("addOnItemTouchListener", "onItemClick position =" + position);
 
-
-
+                String clickedText = imageUris[position].toString();
+                Log.i("addOnItemTouchListener", "clickedText =" + clickedText);
                 //dialog fragment
                 FragmentManager fm = getFragmentManager();
-                EditNameDialogFragment editNameDialogFragment = EditNameDialogFragment.newInstance("Some Title");
+                EditNameDialogFragment editNameDialogFragment = EditNameDialogFragment.newInstance("Detail",clickedText);
                 editNameDialogFragment.show(fm, "fragment_edit_name");
 
 
