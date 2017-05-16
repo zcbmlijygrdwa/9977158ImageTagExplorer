@@ -239,11 +239,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("addOnItemTouchListener", "onItemClick position =" + position);
 
 
-//general fragment
-//                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-//                ft.add(R.id.your_placeholder, new FooFragment());
-//                ft.commit();
-
 
                 //dialog fragment
                 FragmentManager fm = getFragmentManager();
@@ -261,88 +256,7 @@ public class MainActivity extends AppCompatActivity {
 // ==============   End of GridView   =====================
 
 
-        // ==============    ImageTagDatabaseHelper   =====================
 
-
-// *****************  ImageTagDatabaseHelper  Test *****************
-/*
-        //  write information
-        SQLiteDatabase database_w;
-        database_w = dbHelper.getWritableDatabase();
-        Log.i("SQLiteDatabase", "database = " + database_w.toString());
-
-        // Create a new map of values, where column names are the keys
-        ContentValues values = new ContentValues();
-        String column_name_insert = "COLUMN_NAME_TITLE";
-        values.put(column_name_insert, "testTitle2");
-        column_name_insert = "COLUMN_NAME_SUBTITLE";
-        values.put(column_name_insert, "testSubtitle");
-
-        // Insert the new row, returning the primary key value of the new row
-        String tableName_insert = "TABLE_NAME";
-        long newRowId = database_w.insert(tableName_insert, null, values);
-        Log.i("SQLiteDatabase", "newRowId = " + newRowId);
-        // end of write information
-
-        //  read information
-
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-
-        // Define a projection that specifies which columns from the database
-        // you will actually use after this query.
-        String[] projection = {
-                "id",
-                "COLUMN_NAME_TITLE",
-                "COLUMN_NAME_SUBTITLE"
-        };
-
-        // Filter results WHERE "title" = 'My Title'
-        String column_name_read = "COLUMN_NAME_TITLE";
-        String selection = column_name_read + " = ?";
-        String[] selectionArgs = { "testTitle1" };
-
-// How you want the results sorted in the resulting Cursor
-        String sortOrder =
-                "COLUMN_NAME_SUBTITLE" + " DESC";
-        String tableName_read = "TABLE_NAME";
-        Cursor cursor = db.query(
-                tableName_read,                     // The table to query
-                projection,                               // The columns to return
-                selection,                                // The columns for the WHERE clause
-                selectionArgs,                            // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
-        );
-        Log.i("cursor", "cursor !");
-        List itemIds = new ArrayList<>();
-        while(cursor.moveToNext()) {
-            long itemId = cursor.getLong(
-                    cursor.getColumnIndexOrThrow("id"));
-            Log.i("cursor", "cursor itemId = " + itemId);
-            itemIds.add(itemId);
-        }
-        cursor.close();
-
-        // end of read information
-        */
-// ***************** end of  ImageTagDatabaseHelper  Test *****************
-
-
-        // ==============    End of ImageTagDatabaseHelper   =====================
-
-
-//        final TextView textView = (TextView) findViewById(R.id.textView);
-        // final ImageView imageView = (ImageView) findViewById(R.id.imageView);
-
-
-//        TaggedImageRetriever.getNumImages(new TaggedImageRetriever.ImageNumResultListener() {
-//            @Override
-//            public void onImageNum(int num) {
-//                Log.i("onImageNum", "num = " + num);
-//                textView.setText(textView.getText() + "\n\n" + num);
-//            }
-//        });
     }
 
     public void updateGridView(){
@@ -672,15 +586,6 @@ public class MainActivity extends AppCompatActivity {
 //        String sortOrder =
 //                "Id" + " DESC";
         String tableName_read = "Tag";
-//        Cursor cursor = db.query(
-//                tableName_read,                     // The table to query
-//                projection,                               // The columns to return
-//                selection,                                // The columns for the WHERE clause
-//                selectionArgs,                            // The values for the WHERE clause
-//                null,                                     // don't group the rows
-//                null,                                     // don't filter by row groups
-//                sortOrder                                 // The sort order
-//        );
         Log.i("cursor", "text = " + text);
         String query = "SELECT * FROM " + tableName_read+" WHERE Tag.Text = '"+text+"'";
 
@@ -725,15 +630,6 @@ public class MainActivity extends AppCompatActivity {
         String sortOrder =
                 "Id" + " DESC";
         String tableName_read = "Tag";
-//        Cursor cursor = db.query(
-//                tableName_read,                     // The table to query
-//                projection,                               // The columns to return
-//                selection,                                // The columns for the WHERE clause
-//                selectionArgs,                            // The values for the WHERE clause
-//                null,                                     // don't group the rows
-//                null,                                     // don't filter by row groups
-//                sortOrder                                 // The sort order
-//        );
         String query = "SELECT * FROM " + tableName_read;
 
         Cursor cursor = db.rawQuery(query, null);
@@ -757,8 +653,6 @@ public class MainActivity extends AppCompatActivity {
 
         return Tags;
     }
-
-
 
     //linked table
     private static final String CreateLinkTable =
@@ -811,16 +705,6 @@ public class MainActivity extends AppCompatActivity {
         String sortOrder =
                 "Id" + " DESC";
         String tableName_read = "Link";
-//        Cursor cursor = db.query(
-//                tableName_read,                     // The table to query
-//                projection,                               // The columns to return
-//                selection,                                // The columns for the WHERE clause
-//                selectionArgs,                            // The values for the WHERE clause
-//                null,                                     // don't group the rows
-//                null,                                     // don't filter by row groups
-//                sortOrder                                 // The sort order
-//        );
-        //String query= "SELECT * FROM Link WHERE Link.TagId = '6'";
         String query= "SELECT * FROM " + tableName_read+"  INNER JOIN Tag ON Link.TagId =  Tag.Id INNER JOIN Image ON Link.ImageID =  Image.Id  WHERE Tag.Text = '"+filterTag+"'";
         String query2 = "SELECT *  " +
                 "FROM Image " +
@@ -846,53 +730,5 @@ public class MainActivity extends AppCompatActivity {
 
         return Uris;
     }
-
-//    public voidgetLinkedDataFromDBByTag() {
-//       // ArrayList<Employee> employees = new ArrayList<Employee>();
-//        String query = "SELECT " + EMPLOYEE_ID_WITH_PREFIX + ","
-//                + EMPLOYEE_NAME_WITH_PREFIX + "," + DataBaseHelper.EMPLOYEE_DOB
-//                + "," + DataBaseHelper.EMPLOYEE_SALARY + ","
-//                + DataBaseHelper.EMPLOYEE_DEPARTMENT_ID + ","
-//                + DEPT_NAME_WITH_PREFIX + " FROM "
-//                + DataBaseHelper.EMPLOYEE_TABLE + " emp, "
-//                + DataBaseHelper.DEPARTMENT_TABLE + " dept WHERE emp."
-//                + DataBaseHelper.EMPLOYEE_DEPARTMENT_ID + " = dept."
-//                + DataBaseHelper.ID_COLUMN;
-//
-//        // Building query using INNER JOIN keyword
-//        /*String query = "SELECT " + EMPLOYEE_ID_WITH_PREFIX + ","
-//        + EMPLOYEE_NAME_WITH_PREFIX + "," + DataBaseHelper.EMPLOYEE_DOB
-//        + "," + DataBaseHelper.EMPLOYEE_SALARY + ","
-//        + DataBaseHelper.EMPLOYEE_DEPARTMENT_ID + ","
-//        + DEPT_NAME_WITH_PREFIX + " FROM "
-//        + DataBaseHelper.EMPLOYEE_TABLE + " emp INNER JOIN "
-//        + DataBaseHelper.DEPARTMENT_TABLE + " dept ON emp."
-//        + DataBaseHelper.EMPLOYEE_DEPARTMENT_ID + " = dept."
-//        + DataBaseHelper.ID_COLUMN;*/
-//
-//        Log.d("query", query);
-//        Cursor cursor = database.rawQuery(query, null);
-//        while (cursor.moveToNext()) {
-//            Employee employee = new Employee();
-//            employee.setId(cursor.getInt(0));
-//            employee.setName(cursor.getString(1));
-//            try {
-//                employee.setDateOfBirth(formatter.parse(cursor.getString(2)));
-//            } catch (ParseException e) {
-//                employee.setDateOfBirth(null);
-//            }
-//            employee.setSalary(cursor.getDouble(3));
-//
-//            Department department = new Department();
-//            department.setId(cursor.getInt(4));
-//            department.setName(cursor.getString(5));
-//
-//            employee.setDepartment(department);
-//
-//            employees.add(employee);
-//        }
-//     //   return employees;
-//    }
-
 
 }
