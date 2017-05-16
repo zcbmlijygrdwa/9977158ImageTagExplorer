@@ -1,6 +1,7 @@
 package zhenyuyang.cs190i.cs.ucsb.edu.a9977158imagetagexplorer;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -14,6 +15,9 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.app.DialogFragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -30,6 +34,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -83,11 +88,11 @@ public class MainActivity extends AppCompatActivity {
         // autocompletetextview
 
 
-//        String[] StringsForAutoComplete = { "Paries,France", "PA,United States","Parana,Brazil",
-//                "Padua,Italy", "Pasadena,CA,United States"};
 
         String[] StringsForAutoComplete= getALLTagsUriFromDB(dbHelper.getReadableDatabase());
-        getLinkedDataFromDBByTag(dbHelper.getReadableDatabase());  //test linked table
+
+
+
 
 
 
@@ -97,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> auto_complete_adapter = new ArrayAdapter<String>
                 (this,android.R.layout.select_dialog_item, StringsForAutoComplete);
 
-        autocomplete.setThreshold(2);
+        autocomplete.setThreshold(1);
         autocomplete.setAdapter(auto_complete_adapter);
         autocomplete.setOnEditorActionListener(
                 new AutoCompleteTextView.OnEditorActionListener() {
@@ -106,10 +111,13 @@ public class MainActivity extends AppCompatActivity {
                         if (actionId == EditorInfo.IME_ACTION_DONE) {
                             Log.i("my", "TextView = "+v.getText().toString());
                             if(!v.getText().toString().equals("")) {
-                                tags.add(v.getText().toString());
-
-                                v.setText("");
-
+                                //tags.add(v.getText().toString());   //not adding
+                                if(tags.size()==0){
+                                    tags.add(v.getText().toString());
+                                }
+                                else{
+                                    tags.set(0,v.getText().toString());
+                                }
 
                                 //update tags RV
                                 TagRVAdapter tagAdapter = new TagRVAdapter(tags);
@@ -122,6 +130,12 @@ public class MainActivity extends AppCompatActivity {
                                         tagRecyclerView.smoothScrollToPosition(tags.size() - 1);
                                     }
                                 });
+                                Uri[] LinkedUris = getLinkedDataFromDBByTag(v.getText().toString(),dbHelper.getReadableDatabase());  //test linked table
+                                SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), LinkedUris);
+                                grid = (GridView) findViewById(R.id.grid);
+                                grid.setAdapter(adapter);
+
+                                v.setText("");
                             }
 
 
@@ -184,6 +198,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         imageUris = getALLImageUriFromDB(dbHelper.getReadableDatabase());
+        //Uri[] LinkedUris = getLinkedDataFromDBByTag("cute",dbHelper.getReadableDatabase());  //test linked table
+
+
         String [] test = getALLTagsUriFromDB(dbHelper.getReadableDatabase());
 
 
@@ -220,6 +237,21 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 Log.i("addOnItemTouchListener", "onItemClick position =" + position);
+
+
+//general fragment
+//                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+//                ft.add(R.id.your_placeholder, new FooFragment());
+//                ft.commit();
+
+
+                //dialog fragment
+                FragmentManager fm = getFragmentManager();
+                EditNameDialogFragment editNameDialogFragment = EditNameDialogFragment.newInstance("Some Title");
+                editNameDialogFragment.show(fm, "fragment_edit_name");
+
+
+
             }
         });
 
@@ -313,6 +345,9 @@ public class MainActivity extends AppCompatActivity {
 //        });
     }
 
+    public void updateGridView(){
+
+    }
 
     void updateGridViewWithDB(SQLiteDatabase db){
         //imageUris = getImageUriFromDB(db);
@@ -760,7 +795,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    void getLinkedDataFromDBByTag( SQLiteDatabase database_r) {
+    Uri [] getLinkedDataFromDBByTag( String filterTag, SQLiteDatabase database_r) {
 //  read information
         String[] projection = {
                 "Id",
@@ -786,30 +821,30 @@ public class MainActivity extends AppCompatActivity {
 //                sortOrder                                 // The sort order
 //        );
         //String query= "SELECT * FROM Link WHERE Link.TagId = '6'";
-        String query= "SELECT * FROM " + tableName_read+"  INNER JOIN Tag ON Link.TagId =  Tag.Id INNER JOIN Image ON Link.ImageID =  Image.Id  WHERE Tag.Text = 'dog'";
+        String query= "SELECT * FROM " + tableName_read+"  INNER JOIN Tag ON Link.TagId =  Tag.Id INNER JOIN Image ON Link.ImageID =  Image.Id  WHERE Tag.Text = '"+filterTag+"'";
         String query2 = "SELECT *  " +
                 "FROM Image " +
                 "WHERE Tag.Id=TagId";
         Cursor cursor = database_r.rawQuery(query, null);
 
         Log.i("cursor", "cursor Linked !");
-        ArrayList<String> itemIds = new ArrayList<String>();
+        ArrayList<Uri> itemIds = new ArrayList<Uri>();
         while (cursor.moveToNext()) {
             // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
             //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
-            String ss = (cursor.getString(cursor.getColumnIndex("ImageUri")));
-            Log.i("cursor", "cursor Text = " + ss);
+            Uri ss = Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
+            //Log.i("cursor", "cursor Text = " + ss);
             itemIds.add(ss);
         }
         cursor.close();
         // end of read information
-        String[] Tags = itemIds.toArray(new String[itemIds.size()]);
+        Uri[] Uris = itemIds.toArray(new Uri[itemIds.size()]);
 
-        for(int i = 0; i< Tags.length;i++){
-            Log.i("Linked", "Linked2 results["+i+"] = " + Tags[i]);
+        for(int i = 0; i< Uris.length;i++){
+            Log.i("Linked", "Linked results Uris["+i+"] = " + Uris[i]);
         }
 
-       // return Tags;
+        return Uris;
     }
 
 //    public voidgetLinkedDataFromDBByTag() {
