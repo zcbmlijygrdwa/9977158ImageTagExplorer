@@ -16,13 +16,19 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -36,6 +42,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -58,6 +65,80 @@ public class MainActivity extends AppCompatActivity {
 
         ImageTagDatabaseHelper.Initialize(this);
         dbHelper = ImageTagDatabaseHelper.GetInstance();
+
+
+        //  Tag recyclerView
+
+        final RecyclerView tagRecyclerView = (RecyclerView) findViewById(R.id.tag_list);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext(),LinearLayoutManager.HORIZONTAL,false);
+        tagRecyclerView.setLayoutManager(linearLayoutManager);
+        //String [] tags = {"qwer","weewer","qwgrqeg3","gh","t42","my","342gr","3rvf","uizxcvo","qewdvs","qwefcavd"};
+        final ArrayList<String> tags= new  ArrayList<String>();
+//        tags.add("asdfadsf");
+//        tags.add("34t34");
+//        tags.add("nr53443");
+//        tags.add("21qw");
+//        tags.add("90iyuj");
+//        tags.add("90uopijkl");
+        TagRVAdapter tagAdapter = new TagRVAdapter(tags);
+        tagRecyclerView.setAdapter(tagAdapter);
+        // End of Tag recyclerView
+
+
+
+        // autocompletetextview
+
+
+//        String[] StringsForAutoComplete = { "Paries,France", "PA,United States","Parana,Brazil",
+//                "Padua,Italy", "Pasadena,CA,United States"};
+
+        String[] StringsForAutoComplete= getALLTagsUriFromDB(dbHelper.getReadableDatabase());
+
+        AutoCompleteTextView autocomplete = (AutoCompleteTextView)
+                findViewById(R.id.autoCompleteTextView);
+
+        ArrayAdapter<String> auto_complete_adapter = new ArrayAdapter<String>
+                (this,android.R.layout.select_dialog_item, StringsForAutoComplete);
+
+        autocomplete.setThreshold(2);
+        autocomplete.setAdapter(auto_complete_adapter);
+        autocomplete.setOnEditorActionListener(
+                new AutoCompleteTextView.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                        if (actionId == EditorInfo.IME_ACTION_DONE) {
+                            Log.i("my", "TextView = "+v.getText().toString());
+
+                            tags.add(v.getText().toString());
+
+                            v.setText("");
+
+
+
+                            //update tags RV
+                            TagRVAdapter tagAdapter = new TagRVAdapter(tags);
+                            tagRecyclerView.setAdapter(tagAdapter);
+                            Log.i("my", "tags.size()-1 = "+(tags.size()-1));
+
+                            tagRecyclerView.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tagRecyclerView.smoothScrollToPosition(tags.size()-1);
+                                }
+                            });
+
+
+
+                            //StringsForAutoComplete
+//                            InputMethodManager imm = (InputMethodManager)v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+//                            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+        // end of autocompletetextview
+
 
 // register floatingActionButton
 
@@ -192,17 +273,17 @@ public class MainActivity extends AppCompatActivity {
         // ==============    End of ImageTagDatabaseHelper   =====================
 
 
-        final TextView textView = (TextView) findViewById(R.id.textView);
+//        final TextView textView = (TextView) findViewById(R.id.textView);
         // final ImageView imageView = (ImageView) findViewById(R.id.imageView);
 
 
-        TaggedImageRetriever.getNumImages(new TaggedImageRetriever.ImageNumResultListener() {
-            @Override
-            public void onImageNum(int num) {
-                Log.i("onImageNum", "num = " + num);
-                textView.setText(textView.getText() + "\n\n" + num);
-            }
-        });
+//        TaggedImageRetriever.getNumImages(new TaggedImageRetriever.ImageNumResultListener() {
+//            @Override
+//            public void onImageNum(int num) {
+//                Log.i("onImageNum", "num = " + num);
+//                textView.setText(textView.getText() + "\n\n" + num);
+//            }
+//        });
     }
 
 
@@ -304,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
     void getAllOnlineResource() {
         int imageIndex = 0;
 
-
+        // get the total number of resource first
         TaggedImageRetriever.getNumImages(new TaggedImageRetriever.ImageNumResultListener() {
             @Override
             public void onImageNum(int num) {
@@ -342,7 +423,7 @@ public class MainActivity extends AppCompatActivity {
                         } catch (IOException e) {
                         }
 
-                        String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
+                            String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
                         saveImageUriToDB(filePathURI, database_w);
                         //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 
