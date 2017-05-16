@@ -74,12 +74,6 @@ public class MainActivity extends AppCompatActivity {
         tagRecyclerView.setLayoutManager(linearLayoutManager);
         //String [] tags = {"qwer","weewer","qwgrqeg3","gh","t42","my","342gr","3rvf","uizxcvo","qewdvs","qwefcavd"};
         final ArrayList<String> tags= new  ArrayList<String>();
-//        tags.add("asdfadsf");
-//        tags.add("34t34");
-//        tags.add("nr53443");
-//        tags.add("21qw");
-//        tags.add("90iyuj");
-//        tags.add("90uopijkl");
         TagRVAdapter tagAdapter = new TagRVAdapter(tags);
         tagRecyclerView.setAdapter(tagAdapter);
         // End of Tag recyclerView
@@ -93,6 +87,9 @@ public class MainActivity extends AppCompatActivity {
 //                "Padua,Italy", "Pasadena,CA,United States"};
 
         String[] StringsForAutoComplete= getALLTagsUriFromDB(dbHelper.getReadableDatabase());
+        getLinkedDataFromDBByTag(dbHelper.getReadableDatabase());  //test linked table
+
+
 
         AutoCompleteTextView autocomplete = (AutoCompleteTextView)
                 findViewById(R.id.autoCompleteTextView);
@@ -108,25 +105,24 @@ public class MainActivity extends AppCompatActivity {
                     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                         if (actionId == EditorInfo.IME_ACTION_DONE) {
                             Log.i("my", "TextView = "+v.getText().toString());
+                            if(!v.getText().toString().equals("")) {
+                                tags.add(v.getText().toString());
 
-                            tags.add(v.getText().toString());
-
-                            v.setText("");
+                                v.setText("");
 
 
+                                //update tags RV
+                                TagRVAdapter tagAdapter = new TagRVAdapter(tags);
+                                tagRecyclerView.setAdapter(tagAdapter);
+                                Log.i("my", "tags.size()-1 = " + (tags.size() - 1));
 
-                            //update tags RV
-                            TagRVAdapter tagAdapter = new TagRVAdapter(tags);
-                            tagRecyclerView.setAdapter(tagAdapter);
-                            Log.i("my", "tags.size()-1 = "+(tags.size()-1));
-
-                            tagRecyclerView.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    tagRecyclerView.smoothScrollToPosition(tags.size()-1);
-                                }
-                            });
-
+                                tagRecyclerView.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        tagRecyclerView.smoothScrollToPosition(tags.size() - 1);
+                                    }
+                                });
+                            }
 
 
                             //StringsForAutoComplete
@@ -184,8 +180,36 @@ public class MainActivity extends AppCompatActivity {
                 updateGridViewWithDB(dbHelper.getReadableDatabase());
             }
         });
+
+
+
         imageUris = getALLImageUriFromDB(dbHelper.getReadableDatabase());
         String [] test = getALLTagsUriFromDB(dbHelper.getReadableDatabase());
+
+
+
+
+        Button button_clearDB = (Button) findViewById(R.id.button_clearDB);
+        button_clearDB.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                Log.i("ClearDB", "db = "+db);
+                if(db!=null){
+                dbHelper.ClearDB(db);
+                Toast.makeText(getApplicationContext(), "Clear DB!", Toast.LENGTH_LONG).show();
+                }
+                else{
+
+                    Toast.makeText(getApplicationContext(), "Database is empty!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+
+
+
         // ==============    GridView   =====================
         SelelctImageGrid adapter = new SelelctImageGrid(this, imageUris);
         grid = (GridView) findViewById(R.id.grid);
@@ -198,6 +222,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("addOnItemTouchListener", "onItemClick position =" + position);
             }
         });
+
+
+
 
 // ==============   End of GridView   =====================
 
@@ -313,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
                 Uri selectedImageURI = data.getData();
                 Log.i("onActivityResult", "result = " + selectedImageURI.toString());
                 saveImageUriToDB(selectedImageURI.toString(), dbHelper.getReadableDatabase());
-                saveTagUriToDB("Tag_iamge_picked", dbHelper.getWritableDatabase());
+                saveTagUriToDB("Tag_iamge_picked", dbHelper.getWritableDatabase(),dbHelper.getReadableDatabase());
                 updateGridViewWithDB(dbHelper.getWritableDatabase());
                 //Uri[] imageUris = { selectedImageURI,selectedImageURI,selectedImageURI};
 //                imageUris = addUri(imageUris,selectedImageURI);
@@ -349,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                     //Uri selectedImageURI = data.getData();
                     Log.i("onActivityResult", "result44 = " + filePathURI.toString());
                     saveImageUriToDB(filePathURI.toString(), dbHelper.getReadableDatabase());
-                    saveTagUriToDB("Tag_camera_captured", dbHelper.getWritableDatabase());
+                    saveTagUriToDB("Tag_camera_captured", dbHelper.getWritableDatabase(),dbHelper.getReadableDatabase());
                     updateGridViewWithDB(dbHelper.getWritableDatabase());
                 }
             }
@@ -424,7 +451,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                             String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
-                        saveImageUriToDB(filePathURI, database_w);
+                        int ImageID = saveImageUriToDB(filePathURI, database_w);
                         //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 
                         Log.i("onTaggedImage", "getFileStreamPath = " + filePathURI);
@@ -434,7 +461,8 @@ public class MainActivity extends AppCompatActivity {
                         StringBuilder tagList = new StringBuilder();
                         for (String p : image.tags) {
                             tagList.append(p + "\n");
-                            saveTagUriToDB(p, database_w);
+                            int TagID = saveTagUriToDB(p, database_w,database_r);
+                            saveLinkedDataToDB(ImageID,TagID,database_w);
                         }
                         // textView.setText(textView.getText() + "\n\n" + tagList.toString());
                     }
@@ -445,7 +473,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    void saveImageUriToDB(String uri_input, SQLiteDatabase database_w) {
+    int saveImageUriToDB(String uri_input, SQLiteDatabase database_w) {
         Log.i("SQLiteDatabase", "database = " + database_w.toString());
         // Insert the new row, returning the primary key value of the new row
         String tableName_insert = "Image";
@@ -457,9 +485,11 @@ public class MainActivity extends AppCompatActivity {
         try {
             long newRowId = database_w.insertOrThrow(tableName_insert, null, values);
             Log.i("SQLiteDatabase", "newRowId = " + newRowId);
+            return (int)newRowId;
         } catch (Exception e) {
             Log.i("SQLiteDatabase", "Exception = " + e.toString());
             Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+            return -1;
         }
     }
 
@@ -566,7 +596,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    void saveTagUriToDB(String tag_input, SQLiteDatabase database_w) {
+
+
+    int saveTagUriToDB(String tag_input, SQLiteDatabase database_w, SQLiteDatabase database_r) {
         Log.i("SQLiteDatabase", "database = " + database_w.toString());
         // Insert the new row, returning the primary key value of the new row
         String tableName_insert = "Tag";
@@ -578,13 +610,68 @@ public class MainActivity extends AppCompatActivity {
         try {
             long newRowId = database_w.insertOrThrow(tableName_insert, null, values);
             Log.i("SQLiteDatabase", "Tag saved = "+tag_input+", newRowId for tag = " + newRowId);
-
+            return (int)newRowId;
         } catch (Exception e) {
-            Log.i("SQLiteDatabase", "Exception,   " + tag_input+"   has a duplicated value in the database");
+
 
             Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+            int back = getTagsIndexByContent(tag_input,database_r);
+            Log.i("SQLiteDatabase", "Exception,   " + tag_input+"   has a duplicated value in the database, get int back = "+back);
+            return back;
         }
     }
+
+    int getTagsIndexByContent(String text, SQLiteDatabase db) {
+//  read information
+        String[] projection = {
+                "Id",
+                "Text",
+        };
+
+        // Filter results WHERE "title" = 'My Title'
+        String column_name_read_filter = "Id";
+        String selection = column_name_read_filter + " = *";
+        String[] selectionArgs = {text};
+
+//// How you want the results sorted in the resulting Cursor
+//        String sortOrder =
+//                "Id" + " DESC";
+        String tableName_read = "Tag";
+//        Cursor cursor = db.query(
+//                tableName_read,                     // The table to query
+//                projection,                               // The columns to return
+//                selection,                                // The columns for the WHERE clause
+//                selectionArgs,                            // The values for the WHERE clause
+//                null,                                     // don't group the rows
+//                null,                                     // don't filter by row groups
+//                sortOrder                                 // The sort order
+//        );
+        Log.i("cursor", "text = " + text);
+        String query = "SELECT * FROM " + tableName_read+" WHERE Tag.Text = '"+text+"'";
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        Log.i("cursor", "cursor Text !");
+        ArrayList<String> itemIds = new ArrayList<String>();
+        int itemId = -2;
+        while (cursor.moveToNext()) {
+              itemId = (int)cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
+            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
+            //String ss = (cursor.getString(cursor.getColumnIndex("Id")));
+            Log.i("cursor", "cursor Text back = " + itemId);
+           // itemIds.add(ss);
+        }
+        cursor.close();
+//        // end of read information
+//        String[] Tags = itemIds.toArray(new String[itemIds.size()]);
+//
+//        for(int i = 0; i< Tags.length;i++){
+//            Log.i("Tags", "Tags["+i+"] = " + Tags[i]);
+//        }
+
+        return itemId;
+    }
+
 
 
     String[] getALLTagsUriFromDB(SQLiteDatabase db) {
@@ -637,6 +724,140 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+    //linked table
+    private static final String CreateLinkTable =
+            "CREATE TABLE Link (ImageId integer, TagId integer, PRIMARY KEY (ImageId, TagId), " +
+                    "FOREIGN KEY (ImageId) REFERENCES Image (Id) ON DELETE CASCADE ON UPDATE NO ACTION, " +
+                    "FOREIGN KEY (TagId) REFERENCES Tag (Id) ON DELETE CASCADE ON UPDATE NO ACTION);";
+
+
+
+    void saveLinkedDataToDB(int ImageId,int TagId , SQLiteDatabase database_w) {
+        Log.i("SQLiteDatabase", "database = " + database_w.toString());
+        // Insert the new row, returning the primary key value of the new row
+        String tableName_insert = "Link";
+
+        // Create a new map of values, where column names are the keys
+        ContentValues values = new ContentValues();
+
+        String column_name_insert = "ImageId";
+        values.put(column_name_insert, ImageId);
+
+        column_name_insert = "TagId";
+        values.put(column_name_insert, TagId);
+
+
+        try {
+            long newRowId = database_w.insertOrThrow(tableName_insert, null, values);
+            Log.i("SQLiteDatabase", "ImageId saved = "+ImageId+", TagId saved "+TagId+", newRowId for linked = " + newRowId);
+
+        } catch (Exception e) {
+            Log.i("SQLiteDatabase", "Exception,  saveLinkedDataToDB  has a duplicated value in the database");
+
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+
+    void getLinkedDataFromDBByTag( SQLiteDatabase database_r) {
+//  read information
+        String[] projection = {
+                "Id",
+                "Text",
+        };
+
+        // Filter results WHERE "title" = 'My Title'
+        String column_name_read_filter = "Id";
+        String selection = column_name_read_filter + " = *";
+
+
+// How you want the results sorted in the resulting Cursor
+        String sortOrder =
+                "Id" + " DESC";
+        String tableName_read = "Link";
+//        Cursor cursor = db.query(
+//                tableName_read,                     // The table to query
+//                projection,                               // The columns to return
+//                selection,                                // The columns for the WHERE clause
+//                selectionArgs,                            // The values for the WHERE clause
+//                null,                                     // don't group the rows
+//                null,                                     // don't filter by row groups
+//                sortOrder                                 // The sort order
+//        );
+        String query= "SELECT * FROM Link WHERE Link.TagId = '6'";
+        //String query= "SELECT * FROM " + tableName_read+"  INNER JOIN Tag ON Link.TagId =  Tag.Id; WHERE Tag.Text = 'dog'";
+        String query2 = "SELECT *  " +
+                "FROM Image " +
+                "WHERE Tag.Id=TagId";
+        Cursor cursor = database_r.rawQuery(query, null);
+
+        Log.i("cursor", "cursor Linked !");
+        ArrayList<String> itemIds = new ArrayList<String>();
+        while (cursor.moveToNext()) {
+            // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
+            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
+            String ss = (cursor.getString(cursor.getColumnIndex("ImageId")));
+            Log.i("cursor", "cursor Text = " + ss);
+            itemIds.add(ss);
+        }
+        cursor.close();
+        // end of read information
+        String[] Tags = itemIds.toArray(new String[itemIds.size()]);
+
+        for(int i = 0; i< Tags.length;i++){
+            Log.i("Linked", "Linked results["+i+"] = " + Tags[i]);
+        }
+
+       // return Tags;
+    }
+
+//    public voidgetLinkedDataFromDBByTag() {
+//       // ArrayList<Employee> employees = new ArrayList<Employee>();
+//        String query = "SELECT " + EMPLOYEE_ID_WITH_PREFIX + ","
+//                + EMPLOYEE_NAME_WITH_PREFIX + "," + DataBaseHelper.EMPLOYEE_DOB
+//                + "," + DataBaseHelper.EMPLOYEE_SALARY + ","
+//                + DataBaseHelper.EMPLOYEE_DEPARTMENT_ID + ","
+//                + DEPT_NAME_WITH_PREFIX + " FROM "
+//                + DataBaseHelper.EMPLOYEE_TABLE + " emp, "
+//                + DataBaseHelper.DEPARTMENT_TABLE + " dept WHERE emp."
+//                + DataBaseHelper.EMPLOYEE_DEPARTMENT_ID + " = dept."
+//                + DataBaseHelper.ID_COLUMN;
+//
+//        // Building query using INNER JOIN keyword
+//        /*String query = "SELECT " + EMPLOYEE_ID_WITH_PREFIX + ","
+//        + EMPLOYEE_NAME_WITH_PREFIX + "," + DataBaseHelper.EMPLOYEE_DOB
+//        + "," + DataBaseHelper.EMPLOYEE_SALARY + ","
+//        + DataBaseHelper.EMPLOYEE_DEPARTMENT_ID + ","
+//        + DEPT_NAME_WITH_PREFIX + " FROM "
+//        + DataBaseHelper.EMPLOYEE_TABLE + " emp INNER JOIN "
+//        + DataBaseHelper.DEPARTMENT_TABLE + " dept ON emp."
+//        + DataBaseHelper.EMPLOYEE_DEPARTMENT_ID + " = dept."
+//        + DataBaseHelper.ID_COLUMN;*/
+//
+//        Log.d("query", query);
+//        Cursor cursor = database.rawQuery(query, null);
+//        while (cursor.moveToNext()) {
+//            Employee employee = new Employee();
+//            employee.setId(cursor.getInt(0));
+//            employee.setName(cursor.getString(1));
+//            try {
+//                employee.setDateOfBirth(formatter.parse(cursor.getString(2)));
+//            } catch (ParseException e) {
+//                employee.setDateOfBirth(null);
+//            }
+//            employee.setSalary(cursor.getDouble(3));
+//
+//            Department department = new Department();
+//            department.setId(cursor.getInt(4));
+//            department.setName(cursor.getString(5));
+//
+//            employee.setDepartment(department);
+//
+//            employees.add(employee);
+//        }
+//     //   return employees;
+//    }
 
 
 }

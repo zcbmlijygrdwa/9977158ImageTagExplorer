@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +80,18 @@ public class ImageTagDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    }
+
+    public void ClearDB(SQLiteDatabase db){
+
+
+            db.execSQL("DROP TABLE IF EXISTS " + "Image");
+            db.execSQL("DROP TABLE IF EXISTS " + "Tag");
+            db.execSQL("DROP TABLE IF EXISTS " + "Link");
+            db.execSQL("DROP TABLE IF EXISTS " + "TABLE_NAME");
+            onCreate(db);
+
+
     }
 
     public interface OnDatabaseChangeListener {
