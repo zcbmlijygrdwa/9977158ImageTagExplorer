@@ -785,8 +785,8 @@ public class MainActivity extends AppCompatActivity {
 //                null,                                     // don't filter by row groups
 //                sortOrder                                 // The sort order
 //        );
-        String query= "SELECT * FROM Link WHERE Link.TagId = '6'";
-        //String query= "SELECT * FROM " + tableName_read+"  INNER JOIN Tag ON Link.TagId =  Tag.Id; WHERE Tag.Text = 'dog'";
+        //String query= "SELECT * FROM Link WHERE Link.TagId = '6'";
+        String query= "SELECT * FROM " + tableName_read+"  INNER JOIN Tag ON Link.TagId =  Tag.Id INNER JOIN Image ON Link.ImageID =  Image.Id  WHERE Tag.Text = 'dog'";
         String query2 = "SELECT *  " +
                 "FROM Image " +
                 "WHERE Tag.Id=TagId";
@@ -797,7 +797,7 @@ public class MainActivity extends AppCompatActivity {
         while (cursor.moveToNext()) {
             // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
             //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
-            String ss = (cursor.getString(cursor.getColumnIndex("ImageId")));
+            String ss = (cursor.getString(cursor.getColumnIndex("ImageUri")));
             Log.i("cursor", "cursor Text = " + ss);
             itemIds.add(ss);
         }
@@ -806,7 +806,7 @@ public class MainActivity extends AppCompatActivity {
         String[] Tags = itemIds.toArray(new String[itemIds.size()]);
 
         for(int i = 0; i< Tags.length;i++){
-            Log.i("Linked", "Linked results["+i+"] = " + Tags[i]);
+            Log.i("Linked", "Linked2 results["+i+"] = " + Tags[i]);
         }
 
        // return Tags;
