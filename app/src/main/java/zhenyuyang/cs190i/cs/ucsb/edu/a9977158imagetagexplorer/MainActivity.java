@@ -238,11 +238,14 @@ public class MainActivity extends AppCompatActivity {
                                     int position, long id) {
                 Log.i("addOnItemTouchListener", "onItemClick position =" + position);
 
+
+                String [] clickedTagList =  getTagsIndexByImageIndex(position, dbHelper.getReadableDatabase());
+
                 String clickedText = imageUris[position].toString();
                 Log.i("addOnItemTouchListener", "clickedText =" + clickedText);
                 //dialog fragment
                 FragmentManager fm = getFragmentManager();
-                EditNameDialogFragment editNameDialogFragment = EditNameDialogFragment.newInstance("Detail",clickedText);
+                EditNameDialogFragment editNameDialogFragment = EditNameDialogFragment.newInstance("Detail",clickedText,clickedTagList);
                 editNameDialogFragment.show(fm, "fragment_edit_name");
 
 
@@ -613,6 +616,48 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    String [] getTagsIndexByImageIndex(int index, SQLiteDatabase database_r) {
+//  read information
+        String[] projection = {
+                "Id",
+                "Text",
+        };
+
+        // Filter results WHERE "title" = 'My Title'
+        String column_name_read_filter = "Id";
+        String selection = column_name_read_filter + " = *";
+
+
+// How you want the results sorted in the resulting Cursor
+        String sortOrder =
+                "Id" + " DESC";
+        String tableName_read = "Link";
+        String query= "SELECT * FROM " + tableName_read+"  INNER JOIN Tag ON Link.TagId =  Tag.Id WHERE Link.ImageID = "+(index+1)+"";  //minus 1 to fix the index issue
+        String query2 = "SELECT *  " +
+                "FROM Image " +
+                "WHERE Tag.Id=TagId";
+        Cursor cursor = database_r.rawQuery(query, null);
+
+        Log.i("cursor", "cursor Linked !");
+        ArrayList<String> itemIds = new ArrayList<String>();
+        while (cursor.moveToNext()) {
+            // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
+            String ss = cursor.getString(cursor.getColumnIndexOrThrow("Text"));
+            //Uri ss = Uri.parse(cursor.getString(cursor.getColumnIndex("Text")));
+            //Log.i("cursor", "cursor Text = " + ss);
+            itemIds.add(ss);
+        }
+        cursor.close();
+        // end of read information
+        String[] Tags = itemIds.toArray(new String[itemIds.size()]);
+
+        for(int i = 0; i< Tags.length;i++){
+            Log.i("Linked", "Linked results Tags["+i+"] = " + Tags[i]);
+        }
+        return Tags;
+    }
+
+
 
     String[] getALLTagsUriFromDB(SQLiteDatabase db) {
 //  read information
@@ -727,8 +772,11 @@ public class MainActivity extends AppCompatActivity {
         for(int i = 0; i< Uris.length;i++){
             Log.i("Linked", "Linked results Uris["+i+"] = " + Uris[i]);
         }
-
         return Uris;
     }
+
+
+
+
 
 }

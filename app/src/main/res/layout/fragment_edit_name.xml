@@ -13,7 +13,7 @@
         android:src="@drawable/test" />
 
     <AutoCompleteTextView
-        android:id="@+id/autoCompleteTextView"
+        android:id="@+id/autoCompleteTextView_frag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Tag"
