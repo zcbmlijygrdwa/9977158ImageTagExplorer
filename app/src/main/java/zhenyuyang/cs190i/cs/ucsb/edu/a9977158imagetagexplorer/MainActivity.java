@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     GridView grid;
     final int PICK_PHOTO_REQUEST = 5;
     final int TAKE_PHOTO_REQUEST = 4;
-
+    static String[] StringsForAutoComplete;
     ImageTagDatabaseHelper dbHelper;
 
     @Override
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 // ===============   autoCompleteTextView  Registration ===============
 
 
-        final String[] StringsForAutoComplete = getALLTagsUriFromDB(dbHelper.getReadableDatabase());
+        StringsForAutoComplete = getALLTagsUriFromDB(dbHelper.getReadableDatabase());
 
 
         AutoCompleteTextView autocomplete = (AutoCompleteTextView)
@@ -106,9 +106,9 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayAdapter<String> auto_complete_adapter = new ArrayAdapter<String>
                 (this, android.R.layout.select_dialog_item, StringsForAutoComplete);
-
-        autocomplete.setThreshold(1);
         autocomplete.setAdapter(auto_complete_adapter);
+        autocomplete.setThreshold(1);
+
         autocomplete.setOnEditorActionListener(
                 new AutoCompleteTextView.OnEditorActionListener() {
                     @Override
@@ -154,11 +154,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-
-
 // ===============   floatingActionButton  Registration ===============
 
 
@@ -197,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
                 // TODO Auto-generated method stub
 
                 getAllOnlineResource();
-                updateGridViewWithDB(dbHelper.getReadableDatabase());
+                updateMainViewWithDB(dbHelper.getReadableDatabase());
             }
         });
 
@@ -206,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
 
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                updateGridViewWithDB(dbHelper.getReadableDatabase());
+                updateMainViewWithDB(dbHelper.getReadableDatabase());
             }
         });
 
@@ -260,8 +255,18 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    void updateGridViewWithDB(SQLiteDatabase db) {
+    void updateMainViewWithDB(SQLiteDatabase db) {
         imageUris = getALLImageUriFromDB(db);
+        String [] testList = getALLTagsUriFromDB(db);
+
+        StringsForAutoComplete = getALLTagsUriFromDB(dbHelper.getReadableDatabase());
+        ArrayAdapter<String> auto_complete_adapter = new ArrayAdapter<String>
+                (this, android.R.layout.select_dialog_item, StringsForAutoComplete);
+        AutoCompleteTextView autocomplete = (AutoCompleteTextView)
+                findViewById(R.id.autoCompleteTextView);
+        autocomplete.setAdapter(auto_complete_adapter);
+
+
         UpdateGridViewWithDataBase y = new UpdateGridViewWithDataBase(new UpdateGridViewWithDataBase.OnTaskCompleted() {
             @Override
             public void onTaskCompleted(Uri[] temp_uris) {
@@ -272,6 +277,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         y.execute(db);
+
+
+
 
     }
 
@@ -324,10 +332,18 @@ public class MainActivity extends AppCompatActivity {
 
                     String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
                     //Uri selectedImageURI = data.getData();
-                    Log.i("onActivityResult", "result44 = " + filePathURI.toString());
-                    saveImageUriToDB(filePathURI.toString(), dbHelper.getReadableDatabase());
-                    saveTagToDB("Tag_camera_captured", dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
-                    updateGridViewWithDB(dbHelper.getWritableDatabase());
+                    //Log.i("onActivityResult", "result44 = " + filePathURI.toString());
+
+                    saveDataToDB(filePathURI.toString(),"camera",dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
+
+//                    int savedImageIndex = saveImageUriToDB(filePathURI.toString(), dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
+//                    int savedTagIndex = saveTagToDB("camera", dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
+//                    Log.i("onActivityResult", "savedImageIndex = "+savedImageIndex+", savedTagIndex = "+savedTagIndex);
+//                    boolean status = saveLinkedDataToDB(savedImageIndex,savedTagIndex,dbHelper.getWritableDatabase());
+//                    Log.i("onActivityResult", "saveLinkedDataToDB statu = "+status);
+
+
+                    updateMainViewWithDB(dbHelper.getReadableDatabase());
                 }
             }
             if (resultCode == Activity.RESULT_CANCELED) {
@@ -401,11 +417,11 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
-                        int ImageID = saveImageUriToDB(filePathURI, database_w);
+                        int ImageID = saveImageUriToDB(filePathURI, database_w,database_r);
                         //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 
                         Log.i("onTaggedImage", "getFileStreamPath = " + filePathURI);
-                        updateGridViewWithDB(database_r);  //dynamically shows the downloaded images.
+                        updateMainViewWithDB(database_r);  //dynamically shows the downloaded images.
                         //Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
                         // imageView.setImageBitmap(image.image);
                         StringBuilder tagList = new StringBuilder();
@@ -423,7 +439,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    int saveImageUriToDB(String uri_input, SQLiteDatabase database_w) {
+    int saveImageUriToDB(String uri_input, SQLiteDatabase database_w, SQLiteDatabase database_r) {
         Log.i("SQLiteDatabase", "database = " + database_w.toString());
         // Insert the new row, returning the primary key value of the new row
         String tableName_insert = "Image";
@@ -432,15 +448,28 @@ public class MainActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         String column_name_insert = "ImageUri";
         values.put(column_name_insert, uri_input);
+//        try {
+//            long newRowId = database_w.insertOrThrow(tableName_insert, null, values);
+//            Log.i("SQLiteDatabase", "newRowId = " + newRowId);
+//            return (int) newRowId;
+//        } catch (Exception e) {
+//            Log.i("SQLiteDatabase", "Exception = " + e.toString());
+//            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+//            return -1;
+
         try {
             long newRowId = database_w.insertOrThrow(tableName_insert, null, values);
-            Log.i("SQLiteDatabase", "newRowId = " + newRowId);
+            Log.i("SQLiteDatabase", "ImageUti saved = " + uri_input + ", index = " + newRowId);
             return (int) newRowId;
         } catch (Exception e) {
-            Log.i("SQLiteDatabase", "Exception = " + e.toString());
-            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
-            return -1;
+            //Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+            int back = getTagsIndexByContent(uri_input, database_r);
+            Log.i("SQLiteDatabase", "Exception,   " + uri_input + "   has a duplicated value in the database, get int back = " + back);
+            Log.i("onActivityResult", "tag not saved, existing tag with index = "+back);
+            return back;
         }
+
+
     }
 
 
@@ -523,22 +552,22 @@ public class MainActivity extends AppCompatActivity {
 
         Cursor cursor = db.rawQuery(query, null);
 
-        Log.i("cursor", "cursor !");
+        Log.i("Read from DB", "getALLImageUriFromDB !");
         ArrayList<Uri> itemIds = new ArrayList<Uri>();
         while (cursor.moveToNext()) {
             // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
             //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
             Uri ss = Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
-            Log.i("cursor", "1cursor ImageUri = " + ss);
+            //Log.i("Read from DB", "1cursor ImageUri = " + ss);
             itemIds.add(ss);
         }
         cursor.close();
         // end of read information
         Uri[] uris = itemIds.toArray(new Uri[itemIds.size()]);
 
-//        for(int i = 0; i< uris.length;i++){
-//            Log.i("cursor", "uris["+i+"] = " + uris[i]);
-//        }
+        for(int i = 0; i< uris.length;i++){
+            Log.i("Read from DB", "imageUri["+i+"] = " + uris[i]);
+        }
 
         return uris;
     }
@@ -555,12 +584,13 @@ public class MainActivity extends AppCompatActivity {
         values.put(column_name_insert, tag_input);
         try {
             long newRowId = database_w.insertOrThrow(tableName_insert, null, values);
-            Log.i("SQLiteDatabase", "Tag saved = " + tag_input + ", newRowId for tag = " + newRowId);
+            Log.i("SQLiteDatabase", "Tag saved = " + tag_input + ", index = " + newRowId);
             return (int) newRowId;
         } catch (Exception e) {
-            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
             int back = getTagsIndexByContent(tag_input, database_r);
             Log.i("SQLiteDatabase", "Exception,   " + tag_input + "   has a duplicated value in the database, get int back = " + back);
+            Log.i("onActivityResult", "tag not saved, existing tag with index = "+back);
             return back;
         }
     }
@@ -569,11 +599,25 @@ public class MainActivity extends AppCompatActivity {
         String tableName_read = "Tag";
         String query = "SELECT * FROM " + tableName_read + " WHERE Tag.Text = '" + text + "'";
         Cursor cursor = db.rawQuery(query, null);
-        Log.i("cursor", "cursor Text !");
+        Log.i("cursor", "getTagsIndexByContent!");
         int itemId = -2;
         while (cursor.moveToNext()) {
             itemId = (int) cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
             Log.i("cursor", "cursor Text back = " + itemId);
+        }
+        cursor.close();
+        return itemId;
+    }
+
+    int getImageIndexByContent(String text, SQLiteDatabase db) {
+        String tableName_read = "Image";
+        String query = "SELECT * FROM " + tableName_read + " WHERE Image.ImageUri = '" + text + "'";
+        Cursor cursor = db.rawQuery(query, null);
+        Log.i("cursor", "cgetImageIndexByContent!");
+        int itemId = -2;
+        while (cursor.moveToNext()) {
+            itemId = (int) cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
+            Log.i("cursor", "cursor ImageUri back = " + itemId);
         }
         cursor.close();
         return itemId;
@@ -596,7 +640,7 @@ public class MainActivity extends AppCompatActivity {
         String sortOrder =
                 "Id" + " DESC";
         String tableName_read = "Link";
-        String query = "SELECT * FROM " + tableName_read + "  INNER JOIN Tag ON Link.TagId =  Tag.Id WHERE Link.ImageID = " + (index + 1) + "";  //minus 1 to fix the index issue
+        String query = "SELECT * FROM " + tableName_read + "  INNER JOIN Tag ON Link.TagId =  Tag.Id WHERE Link.ImageID = " + (index + 1) + "";  //plus 1 to fix the index issue
         String query2 = "SELECT *  " +
                 "FROM Image " +
                 "WHERE Tag.Id=TagId";
@@ -642,13 +686,13 @@ public class MainActivity extends AppCompatActivity {
 
         Cursor cursor = db.rawQuery(query, null);
 
-        Log.i("cursor", "cursor Text !");
+        Log.i("Read from DB", "getALLTagsUriFromDB !");
         ArrayList<String> itemIds = new ArrayList<String>();
         while (cursor.moveToNext()) {
             // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
             //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
             String ss = (cursor.getString(cursor.getColumnIndex("Text")));
-            Log.i("cursor", "cursor Text = " + ss);
+            //Log.i("cursor", "cursor Text = " + ss);
             itemIds.add(ss);
         }
         cursor.close();
@@ -656,7 +700,7 @@ public class MainActivity extends AppCompatActivity {
         String[] Tags = itemIds.toArray(new String[itemIds.size()]);
 
         for (int i = 0; i < Tags.length; i++) {
-            Log.i("Tags", "Tags[" + i + "] = " + Tags[i]);
+            Log.i("Read from DB", "Tags[" + i + "] = " + Tags[i]);
         }
 
         return Tags;
@@ -669,7 +713,7 @@ public class MainActivity extends AppCompatActivity {
                     "FOREIGN KEY (TagId) REFERENCES Tag (Id) ON DELETE CASCADE ON UPDATE NO ACTION);";
 
 
-    void saveLinkedDataToDB(int ImageId, int TagId, SQLiteDatabase database_w) {
+    boolean saveLinkedDataToDB(int ImageId, int TagId, SQLiteDatabase database_w) {
         Log.i("SQLiteDatabase", "database = " + database_w.toString());
         // Insert the new row, returning the primary key value of the new row
         String tableName_insert = "Link";
@@ -687,11 +731,12 @@ public class MainActivity extends AppCompatActivity {
         try {
             long newRowId = database_w.insertOrThrow(tableName_insert, null, values);
             Log.i("SQLiteDatabase", "ImageId saved = " + ImageId + ", TagId saved " + TagId + ", newRowId for linked = " + newRowId);
-
+            return true;
         } catch (Exception e) {
             Log.i("SQLiteDatabase", "Exception,  saveLinkedDataToDB  has a duplicated value in the database");
 
-            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+            return false;
         }
     }
 
@@ -735,6 +780,18 @@ public class MainActivity extends AppCompatActivity {
             Log.i("Linked", "Linked results Uris[" + i + "] = " + Uris[i]);
         }
         return Uris;
+    }
+
+
+    boolean saveDataToDB(String uri_input,String tag_input, SQLiteDatabase database_w, SQLiteDatabase database_r){
+
+        int savedImageIndex = saveImageUriToDB(uri_input, dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
+        int savedTagIndex = saveTagToDB(tag_input, dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
+        Log.i("onActivityResult", "savedImageIndex = "+savedImageIndex+", savedTagIndex = "+savedTagIndex);
+        boolean status = saveLinkedDataToDB(savedImageIndex,savedTagIndex,dbHelper.getWritableDatabase());
+        Log.i("onActivityResult", "saveLinkedDataToDB statu = "+status);
+
+        return status;
     }
 
 

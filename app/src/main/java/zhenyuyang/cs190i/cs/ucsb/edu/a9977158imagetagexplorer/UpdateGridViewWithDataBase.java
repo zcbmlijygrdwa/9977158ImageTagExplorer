@@ -42,7 +42,7 @@ public class UpdateGridViewWithDataBase extends AsyncTask<Object,Object,Object> 
     }
 
 
-    Uri[]  getALLImageUriFromDB( SQLiteDatabase db) {
+    Uri[] getALLImageUriFromDB(SQLiteDatabase db) {
 //  read information
         String[] projection = {
                 "Id",
@@ -68,26 +68,26 @@ public class UpdateGridViewWithDataBase extends AsyncTask<Object,Object,Object> 
 //                sortOrder                                 // The sort order
 //        );
 
-        String query = "SELECT * FROM "+tableName_read;
+        String query = "SELECT * FROM " + tableName_read;
 
-        Cursor cursor = db.rawQuery(query,null);
+        Cursor cursor = db.rawQuery(query, null);
 
-        Log.i("cursor", "cursor !");
+        Log.i("Read from DB", "getALLImageUriFromDB !");
         ArrayList<Uri> itemIds = new ArrayList<Uri>();
         while (cursor.moveToNext()) {
             // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
             //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
-            Uri ss =  Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
-            Log.i("cursor", "1cursor ImageUri = " + ss);
+            Uri ss = Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
+            //Log.i("Read from DB", "1cursor ImageUri = " + ss);
             itemIds.add(ss);
         }
         cursor.close();
         // end of read information
         Uri[] uris = itemIds.toArray(new Uri[itemIds.size()]);
 
-//        for(int i = 0; i< uris.length;i++){
-//            Log.i("cursor", "uris["+i+"] = " + uris[i]);
-//        }
+        for(int i = 0; i< uris.length;i++){
+            Log.i("Read from DB", "imageUri["+i+"] = " + uris[i]);
+        }
 
         return uris;
     }
