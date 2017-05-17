@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -57,7 +58,8 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements EditNameDialogFragment.OnCompleteListener{
     static Random rnd = new Random();
-    public static final int REQUEST_CAMERA = 1;
+    public static final int REQUEST_CAMERA = 111;
+    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 112;
     //    String[] web = {
 //            "Google"
 //    } ;
@@ -165,9 +167,42 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
         fab_pickImage.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.i("my", "FloatingActionButton");
-                Intent pickPhoto = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+
+//                Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+//                startActivityForResult(pickPhoto.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), PICK_PHOTO_REQUEST);//one can be replaced with any action code
+
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                            != PackageManager.PERMISSION_GRANTED) {
+
+
+                        // Should we show an explanation?
+                        if (shouldShowRequestPermissionRationale(
+                                Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                            // Explain to the user why we need to read the contacts
+                            Log.i("my", "permission.READ_EXTERNAL_STORAGE");
+
+                        }
+
+                        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+
+                        // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                        // app-defined int constant
+
+                        return;
+                    }
+                    else{
+                        Log.i("my", "permission.READ_EXTERNAL_STORAGE3");
+
+                Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(pickPhoto.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), PICK_PHOTO_REQUEST);//one can be replaced with any action code
+                    }
+                }
+
+
             }
         });
 
@@ -402,6 +437,36 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
     protected void onPostResume() {
         super.onPostResume();
         // Show your dialog here (this is called right after onActivityResult)
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        Log.i("my", "permission requestCode = "+requestCode);
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.i("my", "permission.READ_EXTERNAL_STORAGE2");
+
+                    //to start activity after the first time asking for permission
+                    Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(pickPhoto.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), PICK_PHOTO_REQUEST);//one can be replaced with any action code
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+                    Log.i("my", "permission.READ_EXTERNAL_STORAGE denied");
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
     void getAllOnlineResource() {
