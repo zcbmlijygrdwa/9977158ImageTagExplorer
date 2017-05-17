@@ -119,8 +119,8 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
                                         tagRecyclerView.smoothScrollToPosition(tags.size() - 1);
                                     }
                                 });
-                                Uri[] LinkedUris = getLinkedDataFromDBByTag(v.getText().toString(), dbHelper.getReadableDatabase());  //test linked table
-                                SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), LinkedUris);
+                                imageUris = getLinkedDataFromDBByTag(v.getText().toString(), dbHelper.getReadableDatabase());  //test linked table
+                                SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), imageUris);
                                 grid = (GridView) findViewById(R.id.grid);
                                 grid.setAdapter(adapter);
 
@@ -284,6 +284,8 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
                 Log.i("addOnItemTouchListener", "onItemClick position =" + position);
                 String[] clickedTagList = getTagsIndexByImageIndex(position, dbHelper.getReadableDatabase());
                 String chosenItemImageUri = imageUris[position].toString();
+
+
                 Log.i("addOnItemTouchListener", "clickedText =" + chosenItemImageUri);
 
                 //After clicking an iterm, display dialog fragment

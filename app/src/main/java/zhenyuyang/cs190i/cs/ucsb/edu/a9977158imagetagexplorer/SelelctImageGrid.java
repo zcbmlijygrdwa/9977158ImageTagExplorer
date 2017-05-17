@@ -113,4 +113,9 @@ public class SelelctImageGrid extends BaseAdapter {
 
         return grid;
     }
+
+    String getImageUri(){
+        return this.ImageUris.toString();
+
+    }
 }
