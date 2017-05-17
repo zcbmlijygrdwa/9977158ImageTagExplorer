@@ -164,7 +164,7 @@ public class EditNameDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 Log.i("my", "button_frag_ok.setOnClickListener");
-                mListener.onComplete(imageUri,clickedTagList.toArray(new String[0]));
+                mListener.onDialogFragmentComplete(imageUri,clickedTagList.toArray(new String[0]));
 
                 dismiss();  //dismiss the dialogFragment
             }
@@ -177,7 +177,7 @@ public class EditNameDialogFragment extends DialogFragment {
     }
 
     public static interface OnCompleteListener {
-        public abstract void onComplete(String imageUri, String[] tagList);
+        public abstract void onDialogFragmentComplete(String imageUri, String[] tagList);
     }
 
 
