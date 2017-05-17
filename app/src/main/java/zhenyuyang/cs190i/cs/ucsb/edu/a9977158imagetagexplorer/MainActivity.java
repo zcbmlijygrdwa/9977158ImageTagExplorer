@@ -76,10 +76,6 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
 
 
 
-
-
-
-
 // ===============   autoCompleteTextView  Registration ===============
 
 
@@ -101,12 +97,14 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
                         if (actionId == EditorInfo.IME_ACTION_DONE) {
                             Log.i("my", "TextView = " + v.getText().toString());
                             if (!v.getText().toString().equals("")) {
-                                //tags.add(v.getText().toString());   //not adding
-                                if (tags.size() == 0) {
-                                    tags.add(v.getText().toString());
-                                } else {
-                                    tags.set(0, v.getText().toString());
-                                }
+                                tags.add(v.getText().toString());   //not adding
+
+//                                //single tage
+//                                if (tags.size() == 0) {
+//                                    tags.add(v.getText().toString());
+//                                } else {
+//                                    tags.set(0, v.getText().toString());
+//                                }
 
                                 //update tags RV
                                 TagRVAdapter tagAdapter = new TagRVAdapter(tags);
@@ -119,7 +117,10 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
                                         tagRecyclerView.smoothScrollToPosition(tags.size() - 1);
                                     }
                                 });
-                                imageUris = getLinkedDataFromDBByTag(v.getText().toString(), dbHelper.getReadableDatabase());  //test linked table
+                                //imageUris = getLinkedDataFromDBByTag(v.getText().toString(), dbHelper.getReadableDatabase());
+                                imageUris = getLinkedDataFromDBByMultipleTags(tags.toArray(new String[tags.size()]),dbHelper.getReadableDatabase());
+
+
                                 SelelctImageGrid adapter = new SelelctImageGrid(getApplicationContext(), imageUris);
                                 grid = (GridView) findViewById(R.id.grid);
                                 grid.setAdapter(adapter);
@@ -180,23 +181,12 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
                 startActivityForResult(pickPhoto.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), PICK_PHOTO_REQUEST);//one can be replaced with any action code
                     }
                 }
-
-
             }
         });
 
         FloatingActionButton fab_takePhoto = (FloatingActionButton) findViewById(R.id.fab_takePhoto);
         fab_takePhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Log.i("my", "FloatingActionButton");
-
-
-
-//                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//                startActivityForResult(intent, TAKE_PHOTO_REQUEST);
-
-
-
                 // Check permission for CAMERA
                 if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
                         != PackageManager.PERMISSION_GRANTED) {
@@ -207,16 +197,9 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
                             MainActivity.REQUEST_CAMERA);
                 } else {
                     // permission has been granted, continue as usual
-
                     Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                     startActivityForResult(captureIntent, TAKE_PHOTO_REQUEST);
                 }
-
-
-
-
-
-
             }
         });
 
@@ -245,6 +228,10 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
 
             public void onClick(View v) {
                 // TODO Auto-generated method stub
+
+                tags.clear();
+                TagRVAdapter tagAdapter = new TagRVAdapter(tags);
+                tagRecyclerView.setAdapter(tagAdapter);
                 updateMainViewWithDB(dbHelper.getReadableDatabase());
             }
         });
@@ -294,11 +281,7 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
                 editNameDialogFragment.show(fm, "fragment_edit_name");
             }
         });
-
-
 // ===============  End of GridView  Registration ===============
-
-
     }
 
     void updateMainViewWithDB(SQLiteDatabase db) {
@@ -306,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
 //        String [] testList = getALLTagsUriFromDB(db);
 
         StringsForAutoComplete = getALLTagsUriFromDB(dbHelper.getReadableDatabase());
-        ArrayAdapter<String> auto_complete_adapter = new ArrayAdapter<String>
+        ArrayAdapter<String> auto_complete_adapter = new ArrayAdapter<>
                 (this, android.R.layout.select_dialog_item, StringsForAutoComplete);
         AutoCompleteTextView autocomplete = (AutoCompleteTextView)
                 findViewById(R.id.autoCompleteTextView);
@@ -323,10 +306,6 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
             }
         });
         y.execute(db);
-
-
-
-
     }
 
     @Override
@@ -339,11 +318,6 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
             if (resultCode == RESULT_OK) {
                 Uri selectedImageURI = data.getData();
                 Log.i("onActivityResult", "result = " + selectedImageURI.toString());
-
-
-//                saveImageUriToDB(selectedImageURI.toString(), dbHelper.getReadableDatabase());
-//                saveTagUriToDB("Tag_iamge_picked", dbHelper.getWritableDatabase(),dbHelper.getReadableDatabase());
-//                updateGridViewWithDB(dbHelper.getWritableDatabase());
 
                 String clickedText = selectedImageURI.toString();
 
@@ -376,21 +350,14 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
                     } catch (IOException e) {
                         Toast.makeText(getBaseContext(), e.toString(), Toast.LENGTH_SHORT).show();
                     }
-
                     String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
-                    //Uri selectedImageURI = data.getData();
-                    //Log.i("onActivityResult", "result44 = " + filePathURI.toString());
+                    String[] tagsList = {};  //initially it is empty
+                    StringsForAutoComplete = getALLTagsUriFromDB(dbHelper.getReadableDatabase());
+                    //display dialog fragment
+                    FragmentManager fm = getFragmentManager();
+                    EditNameDialogFragment editNameDialogFragment = EditNameDialogFragment.newInstance("Detail", filePathURI, tagsList, StringsForAutoComplete);
+                    editNameDialogFragment.show(fm, "fragment_edit_name");
 
-                    saveDataToDB(filePathURI,"camera",dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
-
-//                    int savedImageIndex = saveImageUriToDB(filePathURI.toString(), dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
-//                    int savedTagIndex = saveTagToDB("camera", dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
-//                    Log.i("onActivityResult", "savedImageIndex = "+savedImageIndex+", savedTagIndex = "+savedTagIndex);
-//                    boolean status = saveLinkedDataToDB(savedImageIndex,savedTagIndex,dbHelper.getWritableDatabase());
-//                    Log.i("onActivityResult", "saveLinkedDataToDB statu = "+status);
-
-
-                    updateMainViewWithDB(dbHelper.getReadableDatabase());
                 }
             }
             if (resultCode == Activity.RESULT_CANCELED) {
@@ -452,15 +419,11 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
     }
 
     void getAllOnlineResource() {
-//        int imageIndex = 0;
-
         // get the total number of resource first
         TaggedImageRetriever.getNumImages(new TaggedImageRetriever.ImageNumResultListener() {
             @Override
             public void onImageNum(int num) {
                 Log.i("onImageNum", "num = " + num);
-//                int imageCount = num;
-                // textView.setText(textView.getText() + "\n\n" + num);
                 getAllOnlineImages(num);
             }
         });
@@ -481,9 +444,7 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
             TaggedImageRetriever.getTaggedImageByIndex(index, new TaggedImageRetriever.TaggedImageResultListener() {
                 @Override
                 public void onTaggedImage(TaggedImageRetriever.TaggedImage image) {
-
                 }
-
                 @Override
                 public void onTaggedImage(TaggedImageRetriever.TaggedImage image, int index) {
                     if (image != null) {
@@ -496,24 +457,17 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
 
                         String filePathURI = Uri.fromFile(getFileStreamPath(fileName)).toString();
                         int ImageID = saveImageUriToDB(filePathURI, database_w,database_r);
-                        //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-
                         Log.i("onTaggedImage", "getFileStreamPath = " + filePathURI);
                         updateMainViewWithDB(database_r);  //dynamically shows the downloaded images.
-                        //Picasso.with(MainActivity.this).load(filePathURI).resize(500, 500).centerCrop().into(imageView);
-                        // imageView.setImageBitmap(image.image);
-                       // StringBuilder tagList = new StringBuilder();
                         for (String p : image.tags) {
                             //tagList.append(p + "\n");
                             int TagID = saveTagToDB(p, database_w, database_r);
                             saveLinkedDataToDB(ImageID, TagID, database_w);
                         }
-                        // textView.setText(textView.getText() + "\n\n" + tagList.toString());
                     }
                 }
             });
         }
-        //database_w.close();   //????
     }
 
 
@@ -546,97 +500,16 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
             Log.i("onActivityResult", "tag not saved, existing tag with index = "+back);
             return back;
         }
-
-
     }
 
-
-//    Uri[] getImageUriFromDBAtIndex(int index, SQLiteDatabase db) {
-////  read information
-////        String[] projection = {
-////                "Id",
-////                "ImageUri",
-////        };
-//        // Filter results WHERE "title" = 'My Title'
-////        String column_name_read_filter = "Id";
-////        String selection = column_name_read_filter + " = *";
-////        String[] selectionArgs = {"" + index};
-//
-//// How you want the results sorted in the resulting Cursor
-////        String sortOrder =
-////                "Id" + " DESC";
-//        String tableName_read = "Image";
-////        Cursor cursor = db.query(
-////                tableName_read,                     // The table to query
-////                projection,                               // The columns to return
-////                selection,                                // The columns for the WHERE clause
-////                selectionArgs,                            // The values for the WHERE clause
-////                null,                                     // don't group the rows
-////                null,                                     // don't filter by row groups
-////                sortOrder                                 // The sort order
-////        );
-//
-//        String query = "SELECT * FROM " + tableName_read;
-//
-//        Cursor cursor = db.rawQuery(query, null);
-//
-//        Log.i("cursor", "cursor !");
-//        ArrayList<Uri> itemIds = new ArrayList<>();
-//        while (cursor.moveToNext()) {
-//            // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
-//            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
-//            Uri ss = Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
-//            Log.i("cursor", "1cursor ImageUri = " + ss);
-//            itemIds.add(ss);
-//        }
-//        cursor.close();
-//        // end of read information
-//        Uri[] uris = itemIds.toArray(new Uri[itemIds.size()]);
-//
-////        for(int i = 0; i< uris.length;i++){
-////            Log.i("cursor", "uris["+i+"] = " + uris[i]);
-////        }
-//        return uris;
-//    }
-
-
     Uri[] getALLImageUriFromDB(SQLiteDatabase db) {
-//  read information
-//        String[] projection = {
-//                "Id",
-//                "ImageUri",
-//        };
-
-        // Filter results WHERE "title" = 'My Title'
-        String column_name_read_filter = "Id";
-//        String selection = column_name_read_filter + " = *";
-
-
-// How you want the results sorted in the resulting Cursor
-//        String sortOrder =
-//                "Id" + " DESC";
         String tableName_read = "Image";
-//        Cursor cursor = db.query(
-//                tableName_read,                     // The table to query
-//                projection,                               // The columns to return
-//                selection,                                // The columns for the WHERE clause
-//                selectionArgs,                            // The values for the WHERE clause
-//                null,                                     // don't group the rows
-//                null,                                     // don't filter by row groups
-//                sortOrder                                 // The sort order
-//        );
-
         String query = "SELECT * FROM " + tableName_read;
-
         Cursor cursor = db.rawQuery(query, null);
-
         Log.i("Read from DB", "getALLImageUriFromDB !");
         ArrayList<Uri> itemIds = new ArrayList<>();
         while (cursor.moveToNext()) {
-            // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
-            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
             Uri ss = Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
-            //Log.i("Read from DB", "1cursor ImageUri = " + ss);
             itemIds.add(ss);
         }
         cursor.close();
@@ -704,28 +577,9 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
 
 
     String[] getTagsIndexByImageIndex(int index, SQLiteDatabase database_r) {
-//  read information
-//        String[] projection = {
-//                "Id",
-//                "Text",
-//        };
-
-        // Filter results WHERE "title" = 'My Title'
-//        String column_name_read_filter = "Id";
-//        String selection = column_name_read_filter + " = *";
-
-
-// How you want the results sorted in the resulting Cursor
-//        String sortOrder =
-//                "Id" + " DESC";
         String tableName_read = "Link";
         String query = "SELECT * FROM " + tableName_read + "  INNER JOIN Tag ON Link.TagId =  Tag.Id WHERE Link.ImageID = " + (index + 1) + "";  //plus 1 to fix the index issue
-//        String query2 = "SELECT *  " +
-//                "FROM Image " +
-//                "WHERE Tag.Id=TagId";
         Cursor cursor = database_r.rawQuery(query, null);
-
-        Log.i("cursor", "cursor Linked !");
         ArrayList<String> itemIds = new ArrayList<>();
         while (cursor.moveToNext()) {
             // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
@@ -746,19 +600,6 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
 
 
     String[] getALLTagsUriFromDB(SQLiteDatabase db) {
-//  read information
-//        String[] projection = {
-//                "Id",
-//                "Text",
-//        };
-
-        // Filter results WHERE "title" = 'My Title'
-//        String column_name_read_filter = "Id";
-//        String selection = column_name_read_filter + " = *";
-
-
-// How you want the results sorted in the resulting Cursor
-//        String sortOrder = "Id" + " DESC";
         String tableName_read = "Tag";
         String query = "SELECT * FROM " + tableName_read;
 
@@ -767,10 +608,7 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
         Log.i("Read from DB", "getALLTagsUriFromDB !");
         ArrayList<String> itemIds = new ArrayList<>();
         while (cursor.moveToNext()) {
-            // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
-            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
             String ss = (cursor.getString(cursor.getColumnIndex("Text")));
-            //Log.i("cursor", "cursor Text = " + ss);
             itemIds.add(ss);
         }
         cursor.close();
@@ -783,13 +621,6 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
 
         return Tags;
     }
-
-//    //linked table
-//    private static final String CreateLinkTable =
-//            "CREATE TABLE Link (ImageId integer, TagId integer, PRIMARY KEY (ImageId, TagId), " +
-//                    "FOREIGN KEY (ImageId) REFERENCES Image (Id) ON DELETE CASCADE ON UPDATE NO ACTION, " +
-//                    "FOREIGN KEY (TagId) REFERENCES Tag (Id) ON DELETE CASCADE ON UPDATE NO ACTION);";
-
 
     boolean saveLinkedDataToDB(int ImageId, int TagId, SQLiteDatabase database_w) {
         Log.i("SQLiteDatabase", "database = " + database_w.toString());
@@ -812,42 +643,20 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
             return true;
         } catch (Exception e) {
             Log.i("SQLiteDatabase", "Exception,  saveLinkedDataToDB  has a duplicated value in the database");
-
-            //Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
             return false;
         }
     }
 
 
     Uri[] getLinkedDataFromDBByTag(String filterTag, SQLiteDatabase database_r) {
-//  read information
-//        String[] projection = {
-//                "Id",
-//                "Text",
-//        };
-
-        // Filter results WHERE "title" = 'My Title'
-//        String column_name_read_filter = "Id";
-//        String selection = column_name_read_filter + " = *";
-
-
-// How you want the results sorted in the resulting Cursor
-//        String sortOrder =
-//                "Id" + " DESC";
         String tableName_read = "Link";
         String query = "SELECT * FROM " + tableName_read + "  INNER JOIN Tag ON Link.TagId =  Tag.Id INNER JOIN Image ON Link.ImageID =  Image.Id  WHERE Tag.Text = '" + filterTag + "'";
-//        String query2 = "SELECT *  " +
-//                "FROM Image " +
-//                "WHERE Tag.Id=TagId";
         Cursor cursor = database_r.rawQuery(query, null);
 
         Log.i("cursor", "cursor Linked !");
         ArrayList<Uri> itemIds = new ArrayList<>();
         while (cursor.moveToNext()) {
-            // long itemId = cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
-            //String ss = cursor.getString(cursor.getColumnIndexOrThrow("ImageUri"));
             Uri ss = Uri.parse(cursor.getString(cursor.getColumnIndex("ImageUri")));
-            //Log.i("cursor", "cursor Text = " + ss);
             itemIds.add(ss);
         }
         cursor.close();
@@ -860,15 +669,67 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
         return Uris;
     }
 
+    Uri[] getLinkedDataFromDBByMultipleTags(String[] filterTagList, SQLiteDatabase database_r) {
+
+        ArrayList<Uri> output_Uris= new ArrayList<>();
+
+        if(filterTagList.length>=1) {
+            Uri[] tempUris = getLinkedDataFromDBByTag(filterTagList[0], database_r);
+            for (int i = 0; i < tempUris.length; i++) {
+                output_Uris.add(tempUris[i]);
+            }
+
+
+        if(filterTagList.length>=2) {
+            for (int i = 1; i < filterTagList.length; i++) {
+                Log.i("Linked", "filterTagList[" + i + "] = " + filterTagList[i]);
+
+                Uri[] tempUris2 = getLinkedDataFromDBByTag(filterTagList[i], database_r);
+
+                for (int k = 0; k < tempUris.length; k++) {
+                    Log.i("Linked", "tempUris[" + k + "] = " + tempUris[k]);
+                }
+
+                for (int j = 0; j < tempUris2.length; j++) {
+                    Log.i("Linked", "tempUris2[" + j + "] = " + tempUris2[j].toString());
+                }
+
+                tempUris = innerJoin(tempUris,tempUris2);
+            }
+        }
+
+            Log.i("Linked", "tempUris.length = " + tempUris.length);
+            for (int i = 0; i < tempUris.length; i++) {
+                Log.i("Linked", "final tempUris[" + i + "] = " + tempUris[i]);
+            }
+
+            return tempUris;
+        }
+        return new Uri[0];
+    }
+
+    Uri[] innerJoin(Uri[] a, Uri[] b){
+        ArrayList<Uri> output_Uris= new ArrayList<>();
+
+        for(int i = 0; i<a.length;i++){
+            for(int j = 0;j<b.length;j++){
+                if(a[i].toString().equals(b[j].toString())){
+                    Log.i("Linked", "i =" + i + ", j = " + j);
+                    output_Uris.add(a[i]);
+                    break;
+                }
+            }
+        }
+        return output_Uris.toArray(new Uri[output_Uris.size()]);
+    }
+
 
     boolean saveDataToDB(String uri_input,String tag_input, SQLiteDatabase database_w, SQLiteDatabase database_r){
-
         int savedImageIndex = saveImageUriToDB(uri_input, database_w, database_r);
         int savedTagIndex = saveTagToDB(tag_input, database_w,database_r);
         Log.i("onActivityResult", "savedImageIndex = "+savedImageIndex+", savedTagIndex = "+savedTagIndex);
         boolean status = saveLinkedDataToDB(savedImageIndex,savedTagIndex,database_r);
         Log.i("onActivityResult", "saveLinkedDataToDB statu = "+status);
-
         return status;
     }
 
@@ -876,12 +737,10 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
     @Override
     public void onDialogFragmentComplete(String imageuri, String [] taglist) {
         Log.i("Frag_CB", "onComplete imageuri = "+imageuri);
-
         for(int i = 0; i <taglist.length;i++){
             Log.i("Frag_CB", "onComplete taglist["+i+"] = "+taglist[i]);
             saveDataToDB(imageuri,taglist[i],dbHelper.getWritableDatabase(), dbHelper.getReadableDatabase());
         }
-
         updateMainViewWithDB(dbHelper.getReadableDatabase());
     }
 }
