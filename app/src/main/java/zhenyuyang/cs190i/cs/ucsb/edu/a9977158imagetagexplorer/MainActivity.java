@@ -282,9 +282,9 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 Log.i("addOnItemTouchListener", "onItemClick position =" + position);
-                String[] clickedTagList = getTagsIndexByImageIndex(position, dbHelper.getReadableDatabase());
-                String chosenItemImageUri = imageUris[position].toString();
 
+                String chosenItemImageUri = imageUris[position].toString();
+                String[] clickedTagList = getTagsIndexByImageIndex(getImageIndexByContent(chosenItemImageUri, dbHelper.getReadableDatabase())-1, dbHelper.getReadableDatabase());
 
                 Log.i("addOnItemTouchListener", "clickedText =" + chosenItemImageUri);
 
@@ -696,7 +696,7 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
         int itemId = -2;
         while (cursor.moveToNext()) {
             itemId = (int) cursor.getLong(cursor.getColumnIndexOrThrow("Id"));
-            Log.i("cursor", "cursor ImageUri back = " + itemId);
+            Log.i("cursor", "getImageIndexByContent ImageUri back = " + itemId);
         }
         cursor.close();
         return itemId;
