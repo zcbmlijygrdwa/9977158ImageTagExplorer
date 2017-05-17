@@ -18,8 +18,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
@@ -35,7 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity implements EditNameDialogFragment.OnCompleteListener{
+public class MainActivity extends AppCompatActivity implements EditNameDialogFragment.OnCompleteListener,Toolbar.OnMenuItemClickListener{
 //    static Random rnd = new Random();
     public static final int REQUEST_CAMERA = 111;
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 112;
@@ -44,11 +47,12 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
 //    } ;
     Uri[] imageUris;
     GridView grid;
+    RecyclerView tagRecyclerView;
     final int PICK_PHOTO_REQUEST = 5;
     final int TAKE_PHOTO_REQUEST = 4;
     static String[] StringsForAutoComplete;
     ImageTagDatabaseHelper dbHelper;
-
+    final ArrayList<String> tags = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,16 +62,18 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
         dbHelper = ImageTagDatabaseHelper.GetInstance();
 
 
-
+        // Menu Bar
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(myToolbar);
 
 
 // ===============    Tag recyclerView  Registration ===============
 
-        final RecyclerView tagRecyclerView = (RecyclerView) findViewById(R.id.tag_list);
+        tagRecyclerView = (RecyclerView) findViewById(R.id.tag_list);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false);
         tagRecyclerView.setLayoutManager(linearLayoutManager);
         //String [] tags_test = {"qwer","weewer","qwgrqeg3","gh","t42","my","342gr","3rvf","uizxcvo","qewdvs","qwefcavd"};
-        final ArrayList<String> tags = new ArrayList<>();
+
         TagRVAdapter tagAdapter = new TagRVAdapter(tags);
         tagRecyclerView.setAdapter(tagAdapter);
 
@@ -211,47 +217,47 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
 
 
 // ===============   Button  Registration ===============
-
-        Button button = (Button) findViewById(R.id.button_online);
-        button.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View v) {
-                // TODO Auto-generated method stub
-
-                getAllOnlineResource();
-                updateMainViewWithDB(dbHelper.getReadableDatabase());
-            }
-        });
-
-        Button button_refresh = (Button) findViewById(R.id.button_refresh);
-        button_refresh.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View v) {
-                // TODO Auto-generated method stub
-
-                tags.clear();
-                TagRVAdapter tagAdapter = new TagRVAdapter(tags);
-                tagRecyclerView.setAdapter(tagAdapter);
-                updateMainViewWithDB(dbHelper.getReadableDatabase());
-            }
-        });
-
-        Button button_clearDB = (Button) findViewById(R.id.button_clearDB);
-        button_clearDB.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View v) {
-                // TODO Auto-generated method stub
-                SQLiteDatabase db = dbHelper.getWritableDatabase();
-                Log.i("ClearDB", "db = " + db);
-                if (db != null) {
-                    dbHelper.ClearDB(db);
-                    Toast.makeText(getApplicationContext(), "Clear DB!", Toast.LENGTH_LONG).show();
-                } else {
-
-                    Toast.makeText(getApplicationContext(), "Database is empty!", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+//
+//        Button button = (Button) findViewById(R.id.button_online);
+//        button.setOnClickListener(new View.OnClickListener() {
+//
+//            public void onClick(View v) {
+//                // TODO Auto-generated method stub
+//
+////                getAllOnlineResource();
+////                updateMainViewWithDB(dbHelper.getReadableDatabase());
+//            }
+//        });
+//
+//        Button button_refresh = (Button) findViewById(R.id.button_refresh);
+//        button_refresh.setOnClickListener(new View.OnClickListener() {
+//
+//            public void onClick(View v) {
+//                // TODO Auto-generated method stub
+//
+////                tags.clear();
+////                TagRVAdapter tagAdapter = new TagRVAdapter(tags);
+////                tagRecyclerView.setAdapter(tagAdapter);
+////                updateMainViewWithDB(dbHelper.getReadableDatabase());
+//            }
+//        });
+//
+//        Button button_clearDB = (Button) findViewById(R.id.button_clearDB);
+//        button_clearDB.setOnClickListener(new View.OnClickListener() {
+//
+//            public void onClick(View v) {
+//                // TODO Auto-generated method stub
+////                SQLiteDatabase db = dbHelper.getWritableDatabase();
+////                Log.i("ClearDB", "db = " + db);
+////                if (db != null) {
+////                    dbHelper.ClearDB(db);
+////                    Toast.makeText(getApplicationContext(), "Clear DB!", Toast.LENGTH_LONG).show();
+////                } else {
+////
+////                    Toast.makeText(getApplicationContext(), "Database is empty!", Toast.LENGTH_LONG).show();
+////                }
+//            }
+//        });
 // ===============  End of  Button  Registration ===============
 
 
@@ -743,4 +749,71 @@ public class MainActivity extends AppCompatActivity implements EditNameDialogFra
         }
         updateMainViewWithDB(dbHelper.getReadableDatabase());
     }
+
+    @Override
+    public boolean onPrepareOptionsMenu(final Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main,menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem menuItem) {
+        switch (menuItem.getItemId()) {
+            case R.id.action_populate:
+                //do sth here
+                Log.i("onMenuItemClick", "action_populate");
+                return true;
+
+            case R.id.action_refresh:
+                //do sth here
+                Log.i("onMenuItemClick", "action_refresh");
+                return true;
+
+            case R.id.action_clear:
+                //do sth here
+                Log.i("onMenuItemClick", "action_clear");
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if(item.getItemId() == R.id.action_populate){
+            Log.i("onMenuItemClick", "action_populate");
+            getAllOnlineResource();
+            updateMainViewWithDB(dbHelper.getReadableDatabase());
+        }
+        if(item.getItemId() == R.id.action_refresh){
+            Log.i("onMenuItemClick", "action_refresh");
+            tags.clear();
+            TagRVAdapter tagAdapter = new TagRVAdapter(tags);
+            tagRecyclerView.setAdapter(tagAdapter);
+            updateMainViewWithDB(dbHelper.getReadableDatabase());
+        }
+        if(item.getItemId() == R.id.action_clear){
+            Log.i("onMenuItemClick", "action_clear");
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            Log.i("ClearDB", "db = " + db);
+            if (db != null) {
+                dbHelper.ClearDB(db);
+                Toast.makeText(getApplicationContext(), "Clear DB!", Toast.LENGTH_LONG).show();
+            } else {
+
+                Toast.makeText(getApplicationContext(), "Database is empty!", Toast.LENGTH_LONG).show();
+            }
+
+
+            tags.clear();
+            TagRVAdapter tagAdapter = new TagRVAdapter(tags);
+            tagRecyclerView.setAdapter(tagAdapter);
+            updateMainViewWithDB(dbHelper.getReadableDatabase());
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
 }

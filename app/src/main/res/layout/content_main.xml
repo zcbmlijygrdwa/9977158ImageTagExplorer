@@ -29,28 +29,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <Button
-            android:id="@+id/button_online"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="OL resource"
-            tools:layout_editor_absoluteX="253dp"
-            tools:layout_editor_absoluteY="-8dp" />
-
-        <Button
-            android:id="@+id/button_refresh"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="refresh"
-            tools:layout_editor_absoluteX="253dp"
-            tools:layout_editor_absoluteY="-8dp" />
-        <Button
-            android:id="@+id/button_clearDB"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="clearDB"
-            tools:layout_editor_absoluteX="253dp"
-            tools:layout_editor_absoluteY="-8dp" />
 
     </LinearLayout>
 
