@@ -1,5 +1,6 @@
 package zhenyuyang.cs190i.cs.ucsb.edu.a9977158imagetagexplorer;
 
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.media.Image;
 import android.net.Uri;
@@ -16,6 +17,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -33,10 +35,12 @@ import java.util.Arrays;
 public class EditNameDialogFragment extends DialogFragment {
      ArrayList<String> tags= new  ArrayList<String>();
     ArrayList<String> clickedTagList= new  ArrayList<String>();
+    String imageUri;
      RecyclerView tagRecyclerView;
     String[] StringsForAutoComplete;
     private EditText mEditText;
 
+    private OnCompleteListener mListener;
 
     public EditNameDialogFragment() {
         // Empty constructor is required for DialogFragment
@@ -68,7 +72,7 @@ public class EditNameDialogFragment extends DialogFragment {
         //mEditText = (EditText) view.findViewById(R.id.txt_your_name);
         // Fetch arguments from bundle and set title
         String title = getArguments().getString("title", "Enter Name");
-        String imageUri = getArguments().getString("imageUri", "file:///data/data/zhenyuyang.cs190i.cs.ucsb.edu.a9977158imagetagexplorer/files/Test5.jpg");
+        imageUri = getArguments().getString("imageUri", "file:///data/data/zhenyuyang.cs190i.cs.ucsb.edu.a9977158imagetagexplorer/files/Test5.jpg");
 
         String [] tagsList2 = {"qwer","weewer","qwgrqeg3","gh","t42","my","342gr","3rvf","uizxcvo","qewdvs","qwefcavd"};
         clickedTagList = new ArrayList<String>(Arrays.asList(getArguments().getStringArray("clickedTagList")));
@@ -155,12 +159,40 @@ public class EditNameDialogFragment extends DialogFragment {
         // end of autocompletetextview
 
 
+        Button button_frag_ok = (Button) view.findViewById(R.id.button_frag_ok);
+        button_frag_ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i("my", "button_frag_ok.setOnClickListener");
+                mListener.onComplete(imageUri,clickedTagList.toArray(new String[0]));
 
-
+                dismiss();  //dismiss the dialogFragment
+            }
+        });
 
         // Show soft keyboard automatically and request focus to field
 //        mEditText.requestFocus();
 //        getDialog().getWindow().setSoftInputMode(
 //                WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
     }
+
+    public static interface OnCompleteListener {
+        public abstract void onComplete(String imageUri, String[] tagList);
+    }
+
+
+
+    // make sure the Activity implemented it
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            this.mListener = (OnCompleteListener)activity;
+        }
+        catch (final ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnCompleteListener");
+        }
+    }
+
+
 }

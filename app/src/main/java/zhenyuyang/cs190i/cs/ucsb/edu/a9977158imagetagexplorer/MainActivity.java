@@ -1,10 +1,12 @@
 package zhenyuyang.cs190i.cs.ucsb.edu.a9977158imagetagexplorer;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -15,6 +17,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
@@ -52,8 +55,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements EditNameDialogFragment.OnCompleteListener{
     static Random rnd = new Random();
+    public static final int REQUEST_CAMERA = 1;
     //    String[] web = {
 //            "Google"
 //    } ;
@@ -171,8 +175,34 @@ public class MainActivity extends AppCompatActivity {
         fab_takePhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.i("my", "FloatingActionButton");
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(intent, TAKE_PHOTO_REQUEST);
+
+
+
+//                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//                startActivityForResult(intent, TAKE_PHOTO_REQUEST);
+
+
+
+                // Check permission for CAMERA
+                if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // Check Permissions Now
+                    // Callback onRequestPermissionsResult interceptado na Activity MainActivity
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.CAMERA},
+                            MainActivity.REQUEST_CAMERA);
+                } else {
+                    // permission has been granted, continue as usual
+
+                    Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(captureIntent, TAKE_PHOTO_REQUEST);
+                }
+
+
+
+
+
+
             }
         });
 
@@ -795,4 +825,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onComplete(String imageuri, String [] taglist) {
+        Log.i("Frag_CB", "onComplete imageuri = "+imageuri);
+
+        for(int i = 0; i <taglist.length;i++){
+            Log.i("Frag_CB", "onComplete taglist["+i+"] = "+taglist[i]);
+        }
+    }
 }
